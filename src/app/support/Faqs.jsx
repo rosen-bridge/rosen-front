@@ -1,8 +1,5 @@
 import React, {useState, Fragment} from 'react';
-import Accordion from '@mui/material/Accordion';
-import AccordionSummary from '@mui/material/AccordionSummary';
-import AccordionDetails from '@mui/material/AccordionDetails';
-import Typography from '@mui/material/Typography';
+import {Typography, AccordionDetails, AccordionSummary, Accordion} from '@mui/material';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 
 const faqs = [
@@ -57,17 +54,20 @@ export default function Faqs() {
                     <Typography sx={{m:2, mb:1, fontSize: "small", letterSpacing: 2}} color="textSecondary">{cat.title}</Typography>
                     <div>
                     {cat.children.map((item,index) => (
-                        <Accordion key={index} expanded={expanded === `${j}-${index}`} onChange={handle_change(`${j}-${index}`)} disableGutters variant="outlined" sx={{
-                            bgcolor: "background.content",
-                            '&:not(:last-child)': {
-                                borderBottom: 0,
-                            }
-                        }}>
-                            <AccordionSummary
-                                expandIcon={<ExpandMoreIcon />}
-                                // aria-controls="panel1a-content"
-                                // id="panel1a-header"
-                            >
+                        <Accordion
+                            key={index}
+                            expanded={expanded === `${j}-${index}`}
+                            onChange={handle_change(`${j}-${index}`)}
+                            disableGutters
+                            variant="outlined"
+                            sx={{
+                                bgcolor: "background.content",
+                                '&:not(:last-child)': {
+                                    borderBottom: 0,
+                                }
+                            }}
+                        >
+                            <AccordionSummary expandIcon={<ExpandMoreIcon />}>
                                 <Typography>{item.que}</Typography>
                             </AccordionSummary>
                             <AccordionDetails>
@@ -77,7 +77,7 @@ export default function Faqs() {
                     ))}
                     </div>
                 </Fragment>
-                ))}
+            ))}
         </Fragment>
     );
 }

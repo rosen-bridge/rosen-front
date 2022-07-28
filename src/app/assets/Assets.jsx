@@ -52,7 +52,6 @@ export default function Assets() {
                 </Box>
             }
         >
-
             <Card variant="outlined" sx={{mb: 5, bgcolor: "background.content"}}>
                 <ContainerBox>
                     <Table>
@@ -65,7 +64,6 @@ export default function Assets() {
                                 <TableCell>Mapping Address</TableCell>
                                 <TableCell>Total Locked</TableCell>
                                 <TableCell>Total Locked USD</TableCell>
-                                {/*<TableCell><Typography noWrap>Total Locked USD</Typography></TableCell>*/}
                             </TableRow>
                         </TableHead>
                         <TableBody>

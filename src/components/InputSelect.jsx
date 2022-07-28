@@ -45,20 +45,14 @@ export default function InputSelect({form, options, name, label, disabled, map={
                 fullWidth
             />
             <Menu
-                // id="lock-menu"
                 anchorEl={anchorRef.current}
                 open={menuDisplay}
                 onClose={handle_close_menu}
-                // MenuListProps={{
-                //     'aria-labelledby': 'lock-button',
-                //     role: 'listbox',
-                // }}
                 sx={{'& .MuiPaper-root': {width: anchorRef?.current?.offsetWidth}}}
             >
                 {options.map((option, index) => (
                     <MenuItem
                         key={index}
-                        // disabled={index === 0}
                         selected={index === selectedIndex}
                         onClick={(event) => handle_click_item(event, index)}
                     >

@@ -1,5 +1,4 @@
 import createTheme from "@mui/material/styles/createTheme";
-// import {blueGrey} from "@mui/material/colors";
 
 export function create_theme(mode) {
     return () => createTheme({
@@ -32,8 +31,8 @@ export function create_theme(mode) {
             ...(mode === "light" ? {
                 background: {
                     root: "#1A1A1A",
-                    content: "#fff",//"#f4f6f9",
-                    paper: "#fff",//"#f4f6f9",
+                    content: "#fff",
+                    paper: "#fff",
                     header: "#E1E1E1",
                 },
             } : {
@@ -49,12 +48,6 @@ export function create_theme(mode) {
                 text: "#858585",
                 textHover: "#d7d7d7",
             },
-            // neutral: {
-            //     dark: blueGrey[800],
-            //     main: blueGrey[500],
-            //     light: blueGrey[300],
-            //     contrastText: blueGrey[50]
-            // },
         },
         typography: {
             h1: {
