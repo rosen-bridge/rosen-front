@@ -1,7 +1,7 @@
 import React, {useState} from "react";
 import {Box, Button, SvgIcon} from "@mui/material";
 import DiamondRoundedIcon from "@mui/icons-material/DiamondRounded";
-import AppNav, {items} from "./AppNav";
+import {items} from "./AppNav";
 import Brightness7Icon from "@mui/icons-material/Brightness7";
 import Brightness4Icon from "@mui/icons-material/Brightness4";
 import {Outlet, useLocation} from "react-router-dom";
@@ -71,14 +71,9 @@ const CircleBorder = styled(Box) (({ theme }) => `
 function LinkTab({label, path, icon, ...restProps}) {
     return (
         <Tab
-            // component="a"
-            // onClick={(event) => {
-            //     event.preventDefault();
-            // }}
             label={label}
             icon={<CircleBorder><SvgIcon component={icon}/></CircleBorder>}
             href={"#"+path}
-            // value={path}
             {...restProps}
         />
     );
@@ -87,9 +82,7 @@ function LinkTab({label, path, icon, ...restProps}) {
 export default function MobileLayout({toggle_mode}) {
     const theme = useTheme()
     const location = useLocation()
-    const [value, setValue] = useState(0)
-    // const value = location.pathname
-    // const value = items.findIndex(item => item.path === location.pathname)
+    const [value, setValue] = useState(() => items.findIndex(item => item.path === location.pathname))
 
     const handleChange = (event, newValue) => {
         setValue(newValue);
@@ -115,11 +108,9 @@ export default function MobileLayout({toggle_mode}) {
                     textColor="inherit"
                     variant="scrollable"
                     scrollButtons="auto"
-                    aria-label="full width tabs example"
                 >
                     {items.map(item => (
                         <LinkTab key={item.path} {...item} />
-                        // <Tab key={item.path} {...item} icon={<SvgIcon component={item.icon}/>}/>
                     ))}
                 </Tabs>
             </NavBox>
