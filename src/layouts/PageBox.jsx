@@ -25,7 +25,7 @@ const HeaderBox = styled(Box) (({ theme }) => `
 
 export default function PageBox({title, subtitle, maxWidth="md", header, indent, ...restProps}) {
     return (
-        <ContainerBox>
+        <ContainerBox options={{suppressScrollX: true, useBothWheelAxes:false}}>
             <HeaderBox sx={{pb: `${indent}px`}}>
                 <Container maxWidth={maxWidth}>
                     <Typography variant="h1">{title}</Typography>
