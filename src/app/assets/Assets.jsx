@@ -36,7 +36,7 @@ export default function Assets() {
                             <InfoOutlinedIcon sx={{fontSize: "small", mr: 2, ml: 0.5, mb: "2px"}}/>
                         </Tooltip>
                     </span>
-                    <Typography sx={{fontSize: "x-large", color: "primary.main"}}><NumberFormat value={11925641973211233000000000000} thousandSeparator displayType="text" prefix="$"/></Typography>
+                    <Typography sx={{fontSize: "x-large", color: "primary.main", wordBreak: "break-all"}}><NumberFormat value={11925641973211233000000000000} thousandSeparator displayType="text" prefix="$"/></Typography>
                 </Box>
             }
         >
