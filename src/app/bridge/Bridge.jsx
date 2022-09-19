@@ -6,9 +6,9 @@ import useObject from "reducers/useObject";
 import InputText from "components/InputText";
 import useMediaQuery from "@mui/material/useMediaQuery";
 import {useTheme} from "@mui/material/styles";
-import { connectNautilus, checkNautilusConnected, getBalance } from "../../wallets/nautilus";
+import { connectNautilus, checkNautilusConnected, getBalance, getUtxos } from "../../wallets/nautilus";
 import token_maps from "../../configs/tokenmap.json";
-import { hex2a } from "../../utils";
+import { hex2a, generateTX } from "../../utils";
 
 const updateStatus = (setWalletConnected) => {
   checkNautilusConnected().then((connected) => {
@@ -57,11 +57,19 @@ export default function Bridge() {
       }
     }, [form.data, walletConnected]);
 
-    function handle_submit() {
+    async function handle_submit() {
+        const ergSource = (form.data["source"].id === "ERG");
         if(!walletConnected) {
-          connectNautilus().then(() => updateStatus(setWalletConnected));
+          if(ergSource) {
+            await connectNautilus();
+            updateStatus(setWalletConnected);
+          }
         } else {
-          alert("Submitted!");
+          if(ergSource) {
+            //TODO: Check amount
+            const uTxos = await getUtxos(form.data["amount"], form.data.token.id);
+            console.log(uTxos);
+          }
         }
     }
 
