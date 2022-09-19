@@ -1,4 +1,4 @@
-import React from "react"
+import React, { useState, useEffect } from "react"
 import {Box, Button, Card, Divider, Grid, Stack, Typography} from "@mui/material";
 import PageBox from "layouts/PageBox";
 import InputSelect from "components/InputSelect";
@@ -6,6 +6,13 @@ import useObject from "reducers/useObject";
 import InputText from "components/InputText";
 import useMediaQuery from "@mui/material/useMediaQuery";
 import {useTheme} from "@mui/material/styles";
+import { connectNautilus, checkNautilusConnected, getUtxos } from "../../wallets/nautilus";
+
+const updateStatus = (setWalletConnected) => {
+  checkNautilusConnected().then((connected) => {
+    setWalletConnected(connected);
+  });
+}
 
 export function ValueDisplay({title, value, unit, color="primary"}) {
     return (
@@ -20,15 +27,27 @@ export function ValueDisplay({title, value, unit, color="primary"}) {
 export default function Bridge() {
     const theme = useTheme();
     const mdUp = useMediaQuery(theme.breakpoints.up('md'));
-    const form = useObject()
+    const form = useObject();
+    const [walletConnected, setWalletConnected] = useState(false);
     const sourceChains = [
-        {id: "BTC", label: "Bitcoin", icon: "BTC.svg", min: 0.001},
-        {id: "ETH", label: "Ethereum", icon: "ETH.svg", min: 1},
-        {id: "ADA", label: "Cardano", icon: "ADA.svg", min: 10},
+        {id: "ERG", label: "Ergo", icon: "ERG.svg"},
+        {id: "ADA", label: "Cardano", icon: "ADA.svg"},
+    ]
+
+    const ergoTokens = [
+      {id: "SIGUSD", label: "Sigma-USD", icon: "ERG.svg", min: 10},
+    ]
+    const cardanoTokens = [
+      {id: "ADA", label: "ADA", icon: "ADA.svg", min: 20},
     ]
 
     function handle_submit() {
-        console.log(form.data)
+        console.log(form.data["source"])
+        if(!walletConnected) {
+          connectNautilus().then(() => updateStatus(setWalletConnected));
+        } else {
+          alert("Submitted!");
+        }
     }
 
     return (
@@ -56,7 +75,7 @@ export default function Bridge() {
                             <InputSelect
                                 name="token"
                                 label="From Token"
-                                options={sourceChains}
+                                options={form.data.source?.id === "ERG" ? ergoTokens : cardanoTokens}
                                 disabled={!form.data["source"]}
                                 form={form}
                             />
@@ -76,7 +95,7 @@ export default function Bridge() {
                             <InputSelect
                                 name="targetToken"
                                 label="To Token"
-                                options={sourceChains}
+                                options={form.data.target?.id === "ERG" ? ergoTokens : cardanoTokens}
                                 disabled={!form.data["target"]}
                                 form={form}
                             />
@@ -115,7 +134,9 @@ export default function Bridge() {
                                 fullWidth
                                 onClick={handle_submit}
                                 sx={{mt: 2}}
-                            >Connect Wallet</Button>
+                            >
+                              {walletConnected ? "Transfer" : "Connect Wallet"}
+                            </Button>
                         </Box>
 
                     </Stack>
