@@ -7,6 +7,8 @@ import InputText from "components/InputText";
 import useMediaQuery from "@mui/material/useMediaQuery";
 import {useTheme} from "@mui/material/styles";
 import { connectNautilus, checkNautilusConnected, getUtxos } from "../../wallets/nautilus";
+import token_maps from "../../configs/tokenmap.json";
+import { hex2a } from "../../utils";
 
 const updateStatus = (setWalletConnected) => {
   checkNautilusConnected().then((connected) => {
@@ -29,20 +31,29 @@ export default function Bridge() {
     const mdUp = useMediaQuery(theme.breakpoints.up('md'));
     const form = useObject();
     const [walletConnected, setWalletConnected] = useState(false);
+    const [ergoTokens, setErgoTokens] = useState([]);
+    const [cardanoTokens, setCardanoTokens] = useState([]);
+
     const sourceChains = [
         {id: "ERG", label: "Ergo", icon: "ERG.svg"},
         {id: "ADA", label: "Cardano", icon: "ADA.svg"},
-    ]
+    ];
 
-    const ergoTokens = [
-      {id: "SIGUSD", label: "Sigma-USD", icon: "ERG.svg", min: 10},
-    ]
-    const cardanoTokens = [
-      {id: "ADA", label: "ADA", icon: "ADA.svg", min: 20},
-    ]
+    useEffect(() => {
+      const { data } = form;
+      if(!data["source"]) {
+        setErgoTokens(token_maps.tokens?.map(item => {
+          const ergoItem = item.ergo;
+          return {id: ergoItem.tokenID, label: ergoItem.tokenName, icon: "ERG.svg", min: 10}
+        }));
+        setCardanoTokens(token_maps.tokens?.map(item => {
+          const cardanoItem = item.cardano;
+          return {id: cardanoItem.fingerprint, label: hex2a(cardanoItem.assetID), icon: "ADA.svg", min: 20}
+        }));
+      }
+    }, [form.data]);
 
     function handle_submit() {
-        console.log(form.data["source"])
         if(!walletConnected) {
           connectNautilus().then(() => updateStatus(setWalletConnected));
         } else {
@@ -88,6 +99,7 @@ export default function Bridge() {
                                 name="target"
                                 label="Target"
                                 options={sourceChains}
+                                disabled={!form.data["source"] || !form.data["token"]}
                                 form={form}
                             />
                         </Grid>

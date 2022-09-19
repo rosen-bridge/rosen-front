@@ -1,0 +1,32 @@
+{
+  "idKeys": {
+    "ergo": "tokenID",
+    "cardano": "fingerprint"
+  },
+  "tokens": [
+    {
+      "ergo": {
+        "tokenID": "03faf2cb329f2e90d6d23b58d91bbb6c046aa143261cc21f52fbe2824bfcbf04",
+        "tokenName": "SigUSD"
+      },
+      "cardano": {
+        "fingerprint": "asset1nl0puwxmhas8fawxp8nx4e2q3wekg969n2auw3",
+        "policyID": "ace7bcc2ce705679149746620de3a84660ce57573df54b5a096e39a2",
+        "assetID": "7369676d61",
+        "unit": "7eae28af2208be856f7a119668ae52a49b73725e326dc16579dcc37e"
+      }
+    },
+    {
+      "ergo": {
+        "tokenID": "fbbaac7337d051c10fc3da0ccb864f4d32d40027551e1c3ea3ce361f39b91e40",
+        "tokenName": "Kushti"
+      },
+      "cardano": {
+        "fingerprint": "asset1nl000000000000000000000000000000000000",
+        "policyID": "22c3b86a5b88a78b5de52f4aed2831d1483b3b7681f1ee2569538130",
+        "assetID": "7af8bb",
+        "unit": "7777777777777777777777777777777777777777777777777777777"
+      }
+    }
+  ]
+}
