@@ -6,7 +6,7 @@ import useObject from "reducers/useObject";
 import InputText from "components/InputText";
 import useMediaQuery from "@mui/material/useMediaQuery";
 import {useTheme} from "@mui/material/styles";
-import { connectNautilus, checkNautilusConnected, getUtxos } from "../../wallets/nautilus";
+import { connectNautilus, checkNautilusConnected, getBalance } from "../../wallets/nautilus";
 import token_maps from "../../configs/tokenmap.json";
 import { hex2a } from "../../utils";
 
@@ -33,6 +33,7 @@ export default function Bridge() {
     const [walletConnected, setWalletConnected] = useState(false);
     const [ergoTokens, setErgoTokens] = useState([]);
     const [cardanoTokens, setCardanoTokens] = useState([]);
+    const [balance, setBalance] = useState(0);
 
     const sourceChains = [
         {id: "ERG", label: "Ergo", icon: "ERG.svg"},
@@ -51,7 +52,10 @@ export default function Bridge() {
           return {id: cardanoItem.fingerprint, label: hex2a(cardanoItem.assetID), icon: "ADA.svg", min: 20}
         }));
       }
-    }, [form.data]);
+      if(data["token"] && walletConnected) {
+        getBalance(data.token?.id).then(balance => setBalance(balance));
+      }
+    }, [form.data, walletConnected]);
 
     function handle_submit() {
         if(!walletConnected) {
@@ -134,10 +138,11 @@ export default function Bridge() {
                     </Grid>
 
                     <Stack spacing={2} p={2} sx={{minWidth: {xs: "100%", md: 320}, alignSelf: "stretch", justifyContent: "flex-end", bgcolor: "background.header"}}>
-                        <ValueDisplay title="Bridge Fee" value={0.005*form.data["amount"]||0} unit="BTC"/>
-                        <ValueDisplay title="Transaction Fee" value={0.01*form.data["amount"]||0} unit="BTC"/>
+                        <ValueDisplay title="Wallet Balance" value={balance} unit={form.data.token?.label||"ERG"}/>
+                        <ValueDisplay title="Bridge Fee" value={0.005*form.data["amount"]||0} unit={form.data.token?.label||"ERG"}/>
+                        <ValueDisplay title="Transaction Fee" value={0.01*form.data["amount"]||0} unit={form.data.token?.label||"ERG"}/>
                         <Divider/>
-                        <ValueDisplay title="You will receive" value={0.985*form.data["amount"]||0} unit="BTC" color="secondary.dark"/>
+                        <ValueDisplay title="You will receive" value={0.985*form.data["amount"]||0} unit={form.data.targetToken?.label||"ERG"} color="secondary.dark"/>
                         <Box>
                             <Button
                                 variant="contained"
