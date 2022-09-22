@@ -1,14 +1,15 @@
 import React from "react";
-import {Link, useLocation} from "react-router-dom";
-import {Box, Stack, SvgIcon} from "@mui/material";
-import {styled} from "@mui/material/styles";
-import WidgetsRoundedIcon from '@mui/icons-material/WidgetsRounded';
-import SupportAgentIcon from '@mui/icons-material/SupportAgent';
-import UndoIcon from '@mui/icons-material/Undo';
-import HomeRepairServiceIcon from '@mui/icons-material/HomeRepairService';
-import RepeatIcon from '@mui/icons-material/Repeat';
+import { Link, useLocation } from "react-router-dom";
+import { Box, Stack, SvgIcon } from "@mui/material";
+import { styled } from "@mui/material/styles";
+import WidgetsRoundedIcon from "@mui/icons-material/WidgetsRounded";
+import SupportAgentIcon from "@mui/icons-material/SupportAgent";
+import UndoIcon from "@mui/icons-material/Undo";
+import HomeRepairServiceIcon from "@mui/icons-material/HomeRepairService";
+import RepeatIcon from "@mui/icons-material/Repeat";
 
-const NavItemLink = styled(Link) (({ theme }) => `
+const NavItemLink = styled(Link)(
+    ({ theme }) => `
     color: ${theme.palette.navbar.text};
     font-size: small;
     font-weight: 700;
@@ -44,52 +45,56 @@ const NavItemLink = styled(Link) (({ theme }) => `
         align-items: center;
         background-color: ${theme.palette.navbar.textHover}0f;
     }
-`)
+`
+);
 
-function NavItem({path, label, icon}) {
-    const location = useLocation()
-    const className = location.pathname === path ? "active" : ""
+function NavItem({ path, label, icon }) {
+    const location = useLocation();
+    const className = location.pathname === path ? "active" : "";
     return (
         <NavItemLink to={path} className={className}>
             <Box className="circle">
-                <SvgIcon component={icon}/>
+                <SvgIcon component={icon} />
             </Box>
             {label}
         </NavItemLink>
-    )
+    );
 }
 
 export const items = [
     {
-        path    : "/bridge",
-        label   : "Bridge",
-        icon    : UndoIcon
-    },{
-        path    : "/assets",
-        label   : "Assets",
-        icon    : HomeRepairServiceIcon
-    },{
-        path    : "/transactions",
-        label   : "Transactions",
-        icon    : RepeatIcon
-    },{
-        path    : "/support",
-        label   : "Support",
-        icon    : SupportAgentIcon
-    },{
-        path    : "/dashboard",
-        label   : "Dashboard",
-        icon    : WidgetsRoundedIcon
+        path: "/bridge",
+        label: "Bridge",
+        icon: UndoIcon
     },
-]
+    {
+        path: "/assets",
+        label: "Assets",
+        icon: HomeRepairServiceIcon
+    },
+    {
+        path: "/transactions",
+        label: "Transactions",
+        icon: RepeatIcon
+    },
+    {
+        path: "/support",
+        label: "Support",
+        icon: SupportAgentIcon
+    },
+    {
+        path: "/dashboard",
+        label: "Dashboard",
+        icon: WidgetsRoundedIcon
+    }
+];
 
 export default function AppNav() {
-
     return (
         <Stack>
-            {items.map(item => (
-                <NavItem key={item.path} {...item}/>
+            {items.map((item) => (
+                <NavItem key={item.path} {...item} />
             ))}
         </Stack>
-    )
+    );
 }
