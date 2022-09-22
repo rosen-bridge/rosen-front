@@ -1,12 +1,12 @@
-/* global BigInt */
 import rosen_config from "../configs/rosen.json";
+import { consts } from "../configs";
 
 let ergolib = import('ergo-lib-wasm-browser');
 
 export const generateTX = async (inputIds, change_address) => {
   const wasm = await ergolib;
-  const fee = BigInt("1000000");
-  const minBoxValue = "1000000";
+  const fee = consts.fee;
+  const minBoxValue = consts.minBoxValue;
   const height = 0;
 
   const rosenBox = new wasm.ErgoBoxCandidateBuilder(
