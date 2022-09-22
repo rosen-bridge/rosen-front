@@ -6,9 +6,9 @@ import useObject from "reducers/useObject";
 import InputText from "components/InputText";
 import useMediaQuery from "@mui/material/useMediaQuery";
 import {useTheme} from "@mui/material/styles";
-import { connectNautilus, checkNautilusConnected, getBalance, getUtxos } from "../../wallets/nautilus";
+import { connectNautilus, checkNautilusConnected, getBalance, getUtxos } from "../../wallets";
 import token_maps from "../../configs/tokenmap.json";
-import { hex2a, generateTX } from "../../utils";
+import { hex2a } from "../../utils";
 
 const updateStatus = (setWalletConnected) => {
   checkNautilusConnected().then((connected) => {
