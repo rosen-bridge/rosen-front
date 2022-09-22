@@ -1,6 +1,5 @@
-/* global BigInt */
-
 export const consts = {
-    fee: BigInt("1000000"),
-    minBoxValue: "1000000"
+    minBoxValue: "100000",
+    networkFee: "1000000",
+    bridgeFee: "1000000"
 };

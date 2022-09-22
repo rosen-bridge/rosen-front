@@ -40,3 +40,21 @@ export const getChangeAddress = async () => {
     const context = await window.ergoConnector.nautilus.getContext();
     return context.get_change_address();
 };
+
+export const signTX = async (tx) => {
+    if (!(await checkNautilusConnected())) {
+        alert("Please connect to Nautilus first");
+        return;
+    }
+    const context = await window.ergoConnector.nautilus.getContext();
+    return context.sign_tx(tx);
+};
+
+export const submitTx = async (tx) => {
+    if (!(await checkNautilusConnected())) {
+        alert("Please connect to Nautilus first");
+        return;
+    }
+    const context = await window.ergoConnector.nautilus.getContext();
+    return context.submit_tx(tx);
+};

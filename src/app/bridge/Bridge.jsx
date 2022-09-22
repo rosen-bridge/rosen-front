@@ -11,10 +11,12 @@ import {
     checkNautilusConnected,
     getBalance,
     getUtxos,
-    getChangeAddress
+    getChangeAddress,
+    signTX,
+    submitTx
 } from "../../wallets";
 import token_maps from "../../configs/tokenmap.json";
-import { hex2a } from "../../utils";
+import { hex2a, generateTX } from "../../utils";
 
 const updateStatus = (setWalletConnected) => {
     checkNautilusConnected().then((connected) => {
@@ -95,8 +97,23 @@ export default function Bridge() {
                 //TODO: Check amount
                 const uTxos = await getUtxos(form.data["amount"], form.data.token.id);
                 const changeAddress = await getChangeAddress();
-                console.log(changeAddress);
-                console.log(uTxos);
+                const uTx = await generateTX(
+                    uTxos,
+                    changeAddress,
+                    form.data["target"].id,
+                    form.data["address"],
+                    form.data.token.id,
+                    form.data["amount"]
+                );
+
+                try {
+                    const signedTx = await signTX(uTx);
+                    const result = await submitTx(signedTx);
+                    alert("Done, txid: " + result);
+                } catch (e) {
+                    alert(e.info);
+                    console.error(e);
+                }
             }
         }
     }
