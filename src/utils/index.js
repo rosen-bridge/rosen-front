@@ -1,2 +1,2 @@
-export * from "./fn";
+export * from "./functions";
 export * from "./ergo";
