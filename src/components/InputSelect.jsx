@@ -1,24 +1,43 @@
-import React, {useMemo, useRef, useState} from 'react';
-import {Avatar, Box, IconButton, InputAdornment, MenuItem, Menu, ListItemText, TextField, ListItemAvatar} from "@mui/material";
-import ArrowDropDownIcon from '@mui/icons-material/ArrowDropDown';
+import React, { useMemo, useRef, useState } from "react";
+import {
+    Avatar,
+    Box,
+    IconButton,
+    InputAdornment,
+    MenuItem,
+    Menu,
+    ListItemText,
+    TextField,
+    ListItemAvatar
+} from "@mui/material";
+import ArrowDropDownIcon from "@mui/icons-material/ArrowDropDown";
 
-export default function InputSelect({form, options, name, label, disabled, map={label: "label", icon: "icon"}, ...restProps}) {
-    const anchorRef = useRef()
+export default function InputSelect({
+    form,
+    options,
+    name,
+    label,
+    disabled,
+    map = { label: "label", icon: "icon" },
+    ...restProps
+}) {
+    const anchorRef = useRef();
     const [menuDisplay, set_menuDisplay] = useState(false);
 
-    const [value={}, selectedIndex] = useMemo(() => (
-        [form.data[name], options.findIndex(i => i === form.data[name])]
-    ), [form.data[name]])
+    const [value = {}, selectedIndex] = useMemo(
+        () => [form.data[name], options.findIndex((i) => i === form.data[name])],
+        [form.data[name]]
+    );
 
     function handle_click_item(event, index) {
-        form.put(name, options[index])
-        handle_close_menu()
+        form.put(name, options[index]);
+        handle_close_menu();
     }
     function handle_open_menu() {
-        set_menuDisplay(true)
+        set_menuDisplay(true);
     }
     function handle_close_menu() {
-        set_menuDisplay(false)
+        set_menuDisplay(false);
     }
 
     return (
@@ -29,14 +48,18 @@ export default function InputSelect({form, options, name, label, disabled, map={
                 label={label}
                 InputProps={{
                     readOnly: true,
-                    ...(value[map.icon] && {startAdornment: (
-                        <InputAdornment position="start">
-                            <Avatar src={`/static/images/${value[map.icon]}`}/>
-                        </InputAdornment>
-                    )}),
+                    ...(value[map.icon] && {
+                        startAdornment: (
+                            <InputAdornment position="start">
+                                <Avatar src={`/static/images/${value[map.icon]}`} />
+                            </InputAdornment>
+                        )
+                    }),
                     endAdornment: (
                         <InputAdornment position="end">
-                            <IconButton><ArrowDropDownIcon/></IconButton>
+                            <IconButton>
+                                <ArrowDropDownIcon />
+                            </IconButton>
                         </InputAdornment>
                     )
                 }}
@@ -48,7 +71,7 @@ export default function InputSelect({form, options, name, label, disabled, map={
                 anchorEl={anchorRef.current}
                 open={menuDisplay}
                 onClose={handle_close_menu}
-                sx={{'& .MuiPaper-root': {width: anchorRef?.current?.offsetWidth}}}
+                sx={{ "& .MuiPaper-root": { width: anchorRef?.current?.offsetWidth } }}
             >
                 {options.map((option, index) => (
                     <MenuItem
@@ -57,7 +80,7 @@ export default function InputSelect({form, options, name, label, disabled, map={
                         onClick={(event) => handle_click_item(event, index)}
                     >
                         <ListItemAvatar>
-                            <Avatar src={`/static/images/${option[map.icon]}`}/>
+                            <Avatar src={`/static/images/${option[map.icon]}`} />
                         </ListItemAvatar>
                         <ListItemText primary={option[map.label]} />
                     </MenuItem>

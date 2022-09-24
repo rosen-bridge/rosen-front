@@ -7,23 +7,28 @@
     "@emotion/styled": "^11.8.1",
     "@mui/icons-material": "^5.6.2",
     "@mui/material": "^5.7.0",
+    "@rosen-bridge/tokens": "^0.1.5",
     "@testing-library/jest-dom": "^5.16.4",
     "@testing-library/react": "^13.2.0",
     "@testing-library/user-event": "^13.5.0",
+    "ergo-lib-wasm-browser": "^0.20.1",
+    "process": "^0.11.10",
     "react": "^18.1.0",
     "react-dom": "^18.1.0",
     "react-number-format": "^4.9.3",
     "react-perfect-scrollbar": "^1.5.8",
     "react-router-dom": "^6.3.0",
     "react-scripts": "5.0.1",
+    "rewire": "^6.0.0",
     "sass": "^1.51.0",
     "web-vitals": "^2.1.4"
   },
   "scripts": {
-    "start": "react-scripts start",
+    "start": "node ./scripts/start.js",
     "build": "react-scripts build",
     "test": "react-scripts test",
-    "eject": "react-scripts eject"
+    "eject": "react-scripts eject",
+    "fix": "prettier src --write"
   },
   "eslintConfig": {
     "extends": [
