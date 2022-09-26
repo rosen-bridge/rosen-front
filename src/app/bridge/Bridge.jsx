@@ -6,23 +6,11 @@ import useObject from "reducers/useObject";
 import InputText from "components/InputText";
 import useMediaQuery from "@mui/material/useMediaQuery";
 import { useTheme } from "@mui/material/styles";
-import {
-    connectNautilus,
-    checkNautilusConnected,
-    getBalance,
-    getUtxos,
-    getChangeAddress,
-    signTX,
-    submitTx
-} from "../../wallets";
+import { Nautilus } from "../../wallets";
 import token_maps from "../../configs/tokenmap.json";
 import { hex2a, generateTX } from "../../utils";
 
-const updateStatus = (setWalletConnected) => {
-    checkNautilusConnected().then((connected) => {
-        setWalletConnected(connected);
-    });
-};
+const nautilus = new Nautilus();
 
 export function ValueDisplay({ title, value, unit, color = "primary" }) {
     return (
@@ -45,9 +33,19 @@ export default function Bridge() {
     const mdUp = useMediaQuery(theme.breakpoints.up("md"));
     const form = useObject();
     const [walletConnected, setWalletConnected] = useState(false);
+    const [sourceChain, setSourceChain] = useState("");
+    const [balance, setBalance] = useState(0);
     const [ergoTokens, setErgoTokens] = useState([]);
     const [cardanoTokens, setCardanoTokens] = useState([]);
-    const [balance, setBalance] = useState(0);
+
+    const updateStatus = async () => {
+        if (sourceChain === "ERG") {
+            const connected = await nautilus.isConnected();
+            setWalletConnected(connected);
+        } else {
+            //TODO
+        }
+    };
 
     const sourceChains = [
         { id: "ERG", label: "Ergo", icon: "ERG.svg" },
@@ -79,24 +77,33 @@ export default function Bridge() {
                     };
                 })
             );
+        } else {
+            setSourceChain(data["source"].id);
         }
+    }, [form.data["source"]]);
+
+    useEffect(() => {
+        const { data } = form;
         if (data["token"] && walletConnected) {
-            getBalance(data.token?.id).then((balance) => setBalance(balance));
+            if (sourceChain === "ERG") {
+                nautilus.getBalance(data.token?.id).then((balance) => setBalance(balance));
+            } else {
+                //TODO
+            }
         }
-    }, [form.data, walletConnected]);
+    }, [form.data["token"], walletConnected]);
 
     async function handle_submit() {
-        const ergSource = form.data["source"].id === "ERG";
         if (!walletConnected) {
-            if (ergSource) {
-                await connectNautilus();
-                updateStatus(setWalletConnected);
+            if (sourceChain === "ERG") {
+                await nautilus.connect();
+                await updateStatus();
             }
         } else {
-            if (ergSource) {
-                //TODO: Check amount
-                const uTxos = await getUtxos(form.data["amount"], form.data.token.id);
-                const changeAddress = await getChangeAddress();
+            if (sourceChain === "ERG") {
+                //TODO: Check amount and erg
+                const uTxos = await nautilus.getUtxos(form.data["amount"], form.data.token.id);
+                const changeAddress = await nautilus.getChangeAddress();
                 const uTx = await generateTX(
                     uTxos,
                     changeAddress,
@@ -105,10 +112,9 @@ export default function Bridge() {
                     form.data.token.id,
                     form.data["amount"]
                 );
-
                 try {
-                    const signedTx = await signTX(uTx);
-                    const result = await submitTx(signedTx);
+                    const signedTx = await nautilus.signTX(uTx);
+                    const result = await nautilus.submitTx(signedTx);
                     alert("Done, txid: " + result);
                 } catch (e) {
                     alert(e.info);
