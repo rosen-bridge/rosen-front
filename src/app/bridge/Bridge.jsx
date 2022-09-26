@@ -6,11 +6,12 @@ import useObject from "reducers/useObject";
 import InputText from "components/InputText";
 import useMediaQuery from "@mui/material/useMediaQuery";
 import { useTheme } from "@mui/material/styles";
-import { Nautilus } from "../../wallets";
+import { Nautilus, Nami } from "../../wallets";
 import token_maps from "../../configs/tokenmap.json";
 import { hex2a, generateTX } from "../../utils";
 
 const nautilus = new Nautilus();
+const nami = new Nami();
 
 export function ValueDisplay({ title, value, unit, color = "primary" }) {
     return (
@@ -43,7 +44,8 @@ export default function Bridge() {
             const connected = await nautilus.isConnected();
             setWalletConnected(connected);
         } else {
-            //TODO
+            const connected = await nami.isConnected();
+            setWalletConnected(connected);
         }
     };
 
@@ -88,7 +90,7 @@ export default function Bridge() {
             if (sourceChain === "ERG") {
                 nautilus.getBalance(data.token?.id).then((balance) => setBalance(balance));
             } else {
-                //TODO
+                nami.getBalance(data.token?.id).then((balance) => setBalance(balance));
             }
         }
     }, [form.data["token"], walletConnected]);
@@ -97,6 +99,9 @@ export default function Bridge() {
         if (!walletConnected) {
             if (sourceChain === "ERG") {
                 await nautilus.connect();
+                await updateStatus();
+            } else if (sourceChain === "ADA") {
+                await nami.connect();
                 await updateStatus();
             }
         } else {

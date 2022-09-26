@@ -1,22 +1,36 @@
-export const connectNami = async () => {
-    const granted = await window.cardano?.nami?.enable();
-
-    if (!granted) {
-        alert("Failed to connect!");
-        return false;
+export class Nami {
+    constructor() {
+        this.API = null;
     }
-    return true;
-};
 
-export const checkNamiConnected = async () => {
-    return window.cardano?.nami?.isEnabled();
-};
+    async connect() {
+        const granted = await window.cardano?.nami?.enable();
 
-export const getNamiBalance = async (token) => {
-    if (!(await checkNamiConnected())) {
-        alert("Please connect to Nami first");
-        return;
+        if (!granted) {
+            alert("Failed to connect!");
+            return false;
+        }
+        this.API = granted;
+        return true;
     }
-    const API = await window.cardano.nami.enable();
-    return await API.getBalance();
-};
+
+    async getAPI() {
+        if (!(await this.isConnected())) {
+            alert("Please connect to Nami first");
+            return;
+        }
+        if (this.API == null) {
+            this.API = await window.cardano.nami.enable();
+        }
+        return this.API;
+    }
+
+    async isConnected() {
+        return window.cardano?.nami?.isEnabled();
+    }
+
+    async getBalance(token) {
+      const API = await this.getAPI();
+      return API.getBalance();
+    }
+}

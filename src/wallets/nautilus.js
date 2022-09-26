@@ -9,7 +9,6 @@ export class Nautilus {
             return;
         }
         if (this.context == null) {
-            console.log("Getting...");
             this.context = await window.ergoConnector.nautilus.getContext();
         }
         return this.context;
