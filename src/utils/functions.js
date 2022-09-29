@@ -40,3 +40,11 @@ export function unsignedErgoTxToProxy(tx) {
         outputs: tx.outputs.map((o) => ergoBoxCandidateToProxy(o))
     };
 }
+
+export function HexToBuffer(string) {
+    return Buffer.from(string, "hex");
+}
+
+export function HexToAscii(string) {
+    return HexToBuffer(string).toString("ascii");
+}
