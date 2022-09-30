@@ -55,19 +55,12 @@ export class Nami {
         return API.getUtxos();
     }
 
-    async getBalance() {
+    async getBalance(fingerprint) {
         const API = await this.getAPI();
         const ADA = await this.getADALib();
 
         const balanceCBORHex = await API.getBalance();
         const value = ADA.Value.from_bytes(Buffer.from(balanceCBORHex, "hex"));
-        console.log(value.coin().to_str());
-        console.log(value.multiasset());
-        const utxos = await this.getUtxos();
-        const parsedUtxos = utxos.map((utxo) =>
-            ADA.TransactionUnspentOutput.from_bytes(Buffer.from(utxo, "hex"))
-        );
-        console.log(parsedUtxos);
 
         const assets = [];
         if (value.multiasset()) {
@@ -84,7 +77,7 @@ export class Nami {
                         Buffer.from(policyAsset.name(), "hex").toString("hex");
                     const _policy = asset.slice(0, 56);
                     const _name = asset.slice(56);
-                    const fingerprint = new AssetFingerprint(
+                    const fingerprint = AssetFingerprint.fromParts(
                         Buffer.from(_policy, "hex"),
                         Buffer.from(_name, "hex")
                     ).fingerprint();
@@ -98,6 +91,10 @@ export class Nami {
                 }
             }
         }
-        return 10;
+        const balance = assets.reduce((acc, asset) => {
+            return acc + (asset.fingerprint === fingerprint ? Number(asset.quantity) : 0);
+        }, 0);
+
+        return balance;
     }
 }
