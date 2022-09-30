@@ -125,6 +125,8 @@ export default function Bridge() {
                     alert(e.info);
                     console.error(e);
                 }
+            } else if (sourceChain === "ADA") {
+                console.log(await nami.getUtxos());
             }
         }
     }

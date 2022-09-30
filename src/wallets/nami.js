@@ -43,11 +43,8 @@ export class Nami {
 
     async getNetworkId() {
         const API = await this.getAPI();
-        let networkId = await API.getNetworkId();
-        return {
-            id: networkId,
-            network: networkId === 1 ? "mainnet" : "testnet"
-        };
+        const networkId = await API.getNetworkId();
+        return networkId;
     }
 
     async getUtxos(amount, token) {
