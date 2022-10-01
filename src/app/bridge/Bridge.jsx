@@ -8,7 +8,7 @@ import useMediaQuery from "@mui/material/useMediaQuery";
 import { useTheme } from "@mui/material/styles";
 import { Nautilus, Nami } from "../../wallets";
 import token_maps from "../../configs/tokenmap.json";
-import { hex2a, generateTX } from "../../utils";
+import { hex2a, generateTX, generateAdaTX } from "../../utils";
 
 const nautilus = new Nautilus();
 const nami = new Nami();
@@ -126,7 +126,12 @@ export default function Bridge() {
                     console.error(e);
                 }
             } else if (sourceChain === "ADA") {
-                console.log(await nami.getUtxos());
+                const adaLib = await nami.getADALib();
+                const utxos = await nami.getUtxos(0, 0);
+                const networkId = await nami.getNetworkId();
+                console.log(1);
+                await generateAdaTX(adaLib, utxos, networkId);
+                console.log(2);
             }
         }
     }

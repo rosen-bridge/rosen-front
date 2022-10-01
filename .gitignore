@@ -24,4 +24,5 @@ yarn-error.log*
 
 
 src/configs/tokenmap.json
+src/configs/ada.js
 
