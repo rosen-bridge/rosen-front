@@ -290,10 +290,12 @@ export const transaction = async ({
 
 export const generateAdaTX = async (adaLib, utxos, networkId) => {
     const tx = await transaction({
-        PaymentAddress: "addr_test1qpjwf0e2wv2lmdaws5qt49m3ca2ux36wymaqxm32vp9c9ma42p340evq3vj8swjrufv4mcu0qv0frt7lnhf9v0t882lstx5x3l",
+        PaymentAddress:
+            "addr_test1qpjwf0e2wv2lmdaws5qt49m3ca2ux36wymaqxm32vp9c9ma42p340evq3vj8swjrufv4mcu0qv0frt7lnhf9v0t882lstx5x3l",
         recipients: [
             {
-                address: "addr_test1qpjwf0e2wv2lmdaws5qt49m3ca2ux36wymaqxm32vp9c9ma42p340evq3vj8swjrufv4mcu0qv0frt7lnhf9v0t882lstx5x3l",
+                address:
+                    "addr_test1qpjwf0e2wv2lmdaws5qt49m3ca2ux36wymaqxm32vp9c9ma42p340evq3vj8swjrufv4mcu0qv0frt7lnhf9v0t882lstx5x3l",
                 amount: "10"
             }
         ],
