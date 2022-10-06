@@ -129,9 +129,9 @@ export default function Bridge() {
                 const adaLib = await nami.getADALib();
                 const utxos = await nami.getUtxos(0, 0);
                 const networkId = await nami.getNetworkId();
-                console.log(1);
-                await generateAdaTX(adaLib, utxos, networkId);
-                console.log(2);
+                console.log(adaLib);
+                console.log(utxos);
+                console.log(networkId);
             }
         }
     }
