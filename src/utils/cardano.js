@@ -1,5 +1,6 @@
 import adaLoader from "../utils/cardanoLoader";
 import { consts } from "../configs";
+import rosen_config from "../configs/rosen.json";
 
 const getProccessedUtxos = async (rawUtxos) => {
     const adaLib = await adaLoader.load();
@@ -76,7 +77,6 @@ export const getAux = async (toAddress, fromAddress) => {
 };
 
 export const generateAdaTX = async (
-    bankAddress,
     changeAddress,
     assetNameHex,
     assetPolicyIdHex,
@@ -102,7 +102,7 @@ export const generateAdaTX = async (
             .prefer_pure_change(true)
             .build()
     );
-    const shelleyOutputAddress = adaLib.Address.from_bech32(bankAddress);
+    const shelleyOutputAddress = adaLib.Address.from_bech32(rosen_config["cardano_bank_address"]);
     const shelleyChangeAddress = adaLib.Address.from_bech32(changeAddress);
 
     let txOutputBuilder = adaLib.TransactionOutputBuilder.new();

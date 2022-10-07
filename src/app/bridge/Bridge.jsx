@@ -8,7 +8,7 @@ import useMediaQuery from "@mui/material/useMediaQuery";
 import { useTheme } from "@mui/material/styles";
 import { Nautilus, Nami } from "../../wallets";
 import token_maps from "../../configs/tokenmap.json";
-import { hex2a, generateTX, generateAdaTX, getAux } from "../../utils";
+import { hex2a, a2hex, generateTX, generateAdaTX, getAux } from "../../utils";
 
 const nautilus = new Nautilus();
 const nami = new Nami();
@@ -74,6 +74,7 @@ export default function Bridge() {
                     return {
                         id: cardanoItem.fingerprint,
                         label: hex2a(cardanoItem.assetID),
+                        policyId: cardanoItem.policyID,
                         icon: "ADA.svg",
                         min: 20
                     };
@@ -105,8 +106,8 @@ export default function Bridge() {
                 await updateStatus();
             }
         } else {
+            //TODO: Check amount
             if (sourceChain === "ERG") {
-                //TODO: Check amount and erg
                 const uTxos = await nautilus.getUtxos(form.data["amount"], form.data.token.id);
                 const changeAddress = await nautilus.getChangeAddress();
                 const uTx = await generateTX(
@@ -127,22 +128,21 @@ export default function Bridge() {
                 }
             } else if (sourceChain === "ADA") {
                 const utxos = await nami.getUtxos();
+                const userAddress = await nami.getChangeAddress();
+                const toAddress = form.data["address"];
                 const txBody = await generateAdaTX(
-                    "addr_test1vzg07d2qp3xje0w77f982zkhqey50gjxrsdqh89yx8r7nasu97hr0",
-                    "addr_test1qpjwf0e2wv2lmdaws5qt49m3ca2ux36wymaqxm32vp9c9ma42p340evq3vj8swjrufv4mcu0qv0frt7lnhf9v0t882lstx5x3l",
-                    "646f6765",
-                    "ace7bcc2ce705679149746620de3a84660ce57573df54b5a096e39a2",
-                    100,
+                    userAddress,
+                    a2hex(form.data.token.label),
+                    form.data.token.policyId,
+                    form.data["amount"],
                     utxos,
-                    "TOO",
-                    "FROM"
+                    toAddress,
+                    String("addr_test1qpjwf0e2wv2lmdaws") //TODO
                 );
-                console.log(txBody);
-                await nami.signAndSubmitTx(txBody, await getAux("TOO", "FROM"));
-                console.log(2);
-                // console.log(1);
-                // await nami.submitTx(txBody);
-                // console.log(2);
+                await nami.signAndSubmitTx(
+                    txBody,
+                    await getAux(toAddress, String("addr_test1qpjwf0e2wv2lmdaws"))
+                );
             }
         }
     }

@@ -6,6 +6,15 @@ export function hex2a(hexx) {
     return str;
 }
 
+export function a2hex(str) {
+    var arr1 = [];
+    for (var n = 0, l = str.length; n < l; n++) {
+        var hex = Number(str.charCodeAt(n)).toString(16);
+        arr1.push(hex);
+    }
+    return arr1.join("");
+}
+
 export function string2uint8(str) {
     return new Uint8Array(str.split("").map((letter) => letter.charCodeAt(0)));
 }

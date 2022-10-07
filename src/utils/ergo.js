@@ -16,8 +16,8 @@ const getRosenBox = async (rosenValue, tokenId, amount, toChain, toAddress) => {
         rosenValue,
         wasm.Contract.pay_to_address(
             testnet
-                ? wasm.Address.from_testnet_str(rosen_config["bank_address"])
-                : wasm.Address.from_mainnet_str(rosen_config["bank_address"])
+                ? wasm.Address.from_testnet_str(rosen_config["ergo_bank_address"])
+                : wasm.Address.from_mainnet_str(rosen_config["ergo_bank_address"])
         ),
         height
     );

@@ -1,3 +1,4 @@
 {
-    "bank_address": "9gwWZGZgZhGjp1ZKNQ5rtxNELamz6trq9tigDsKRy71boWq3Fqq"
+    "ergo_bank_address": "9gwWZGZgZhGjp1ZKNQ5rtxNELamz6trq9tigDsKRy71boWq3Fqq",
+    "cardano_bank_address": "addr_test1vzg07d2qp3xje0w77f982zkhqey50gjxrsdqh89yx8r7nasu97hr0"
 }
