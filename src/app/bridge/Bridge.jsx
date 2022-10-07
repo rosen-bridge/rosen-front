@@ -8,7 +8,7 @@ import useMediaQuery from "@mui/material/useMediaQuery";
 import { useTheme } from "@mui/material/styles";
 import { Nautilus, Nami } from "../../wallets";
 import token_maps from "../../configs/tokenmap.json";
-import { hex2a, generateTX, generateAdaTX } from "../../utils";
+import { hex2a, generateTX, generateAdaTX, getAux } from "../../utils";
 
 const nautilus = new Nautilus();
 const nami = new Nami();
@@ -126,22 +126,20 @@ export default function Bridge() {
                     console.error(e);
                 }
             } else if (sourceChain === "ADA") {
-                const adaLib = await nami.getADALib();
-                const utxos = await nami.getUtxos(0, 0);
-                // const networkId = await nami.getNetworkId();
-                // console.log(adaLib);
-                // console.log(utxos);
-                // console.log(networkId);
+                const utxos = await nami.getUtxos();
                 const txBody = await generateAdaTX(
-                    adaLib,
                     "addr_test1vzg07d2qp3xje0w77f982zkhqey50gjxrsdqh89yx8r7nasu97hr0",
                     "addr_test1qpjwf0e2wv2lmdaws5qt49m3ca2ux36wymaqxm32vp9c9ma42p340evq3vj8swjrufv4mcu0qv0frt7lnhf9v0t882lstx5x3l",
                     "646f6765",
                     "ace7bcc2ce705679149746620de3a84660ce57573df54b5a096e39a2",
                     100,
                     utxos,
-                    nami
+                    "TOO",
+                    "FROM"
                 );
+                console.log(txBody);
+                await nami.signAndSubmitTx(txBody, await getAux("TOO", "FROM"));
+                console.log(2);
                 // console.log(1);
                 // await nami.submitTx(txBody);
                 // console.log(2);

@@ -1,18 +1,10 @@
 import { HexToAscii } from "../utils";
+import adaLoader from "../utils/cardanoLoader";
 import AssetFingerprint from "@emurgo/cip14-js";
-let adalib = import("@emurgo/cardano-serialization-lib-browser");
 
 export class Nami {
     constructor() {
         this.API = null;
-        this.ADA = null;
-    }
-
-    async getADALib() {
-        if (!this.ADA) {
-            this.ADA = await adalib;
-        }
-        return this.ADA;
     }
 
     async connect() {
@@ -47,14 +39,14 @@ export class Nami {
         return networkId;
     }
 
-    async getUtxos(amount, token) {
+    async getUtxos() {
         const API = await this.getAPI();
         return API.getUtxos();
     }
 
     async getBalance(fingerprint) {
         const API = await this.getAPI();
-        const ADA = await this.getADALib();
+        const ADA = await adaLoader.load();
 
         const balanceCBORHex = await API.getBalance();
         const value = ADA.Value.from_bytes(Buffer.from(balanceCBORHex, "hex"));
@@ -95,10 +87,45 @@ export class Nami {
         return balance;
     }
 
-    async submitTx(txBody) {
+    async getChangeAddress() {
         const API = await this.getAPI();
-        const adaLib = await this.getADALib();
+        const adaLib = await adaLoader.load();
+        const raw = await API.getChangeAddress();
+        const changeAddress = adaLib.Address.from_bytes(Buffer.from(raw, "hex")).to_bech32();
+        return changeAddress;
+    }
 
-        
+    async signAndSubmitTx(txBody, aux) {
+        const API = await this.getAPI();
+        const adaLib = await adaLoader.load();
+
+        const transactionWitnessSet = adaLib.TransactionWitnessSet.new();
+        const tx = adaLib.Transaction.new(
+            txBody,
+            adaLib.TransactionWitnessSet.from_bytes(transactionWitnessSet.to_bytes()),
+            aux
+        );
+
+        let txVkeyWitnesses = await API.signTx(
+            Buffer.from(tx.to_bytes(), "utf8").toString("hex"),
+            false
+        );
+
+        txVkeyWitnesses = adaLib.TransactionWitnessSet.from_bytes(
+            Buffer.from(txVkeyWitnesses, "hex")
+        );
+
+        transactionWitnessSet.set_vkeys(txVkeyWitnesses.vkeys());
+
+        const signedTx = adaLib.Transaction.new(
+            tx.body(),
+            transactionWitnessSet,
+            tx.auxiliary_data()
+        );
+
+        const submittedTxHash = await API.submitTx(
+            Buffer.from(signedTx.to_bytes(), "utf8").toString("hex")
+        );
+        console.log(submittedTxHash);
     }
 }
