@@ -7,7 +7,7 @@ const height = 0;
 const minBoxValue = consts.minBoxValue;
 const testnet = process.env.NETWORK === "testnet";
 
-const getRosenBox = async (rosenValue, tokenId, amount, toChain, toAddress) => {
+const getRosenBox = async (rosenValue, tokenId, amount, toChain, toAddress, fromAddress) => {
     const wasm = await ergolib;
     const networkFee = consts.networkFee;
     const bridgeFee = consts.bridgeFee;
@@ -31,7 +31,8 @@ const getRosenBox = async (rosenValue, tokenId, amount, toChain, toAddress) => {
             string2uint8(toChain.toString()),
             string2uint8(toAddress.toString()),
             string2uint8(networkFee.toString()),
-            string2uint8(bridgeFee.toString())
+            string2uint8(bridgeFee.toString()),
+            string2uint8(fromAddress.toString())
         ])
     );
     return rosenBox.build();
@@ -67,7 +68,7 @@ export const generateTX = async (inputs, changeAddress, toChain, toAddress, toke
         targetTokens
     );
 
-    const rosenBox = await getRosenBox(rosenValue, tokenId, amount, toChain, toAddress);
+    const rosenBox = await getRosenBox(rosenValue, tokenId, amount, toChain, toAddress, changeAddress);
     const txOutputs = new wasm.ErgoBoxCandidates(rosenBox);
     const txBuilder = wasm.TxBuilder.new(
         boxSelection,
