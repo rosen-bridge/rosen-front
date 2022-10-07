@@ -126,6 +126,6 @@ export class Nami {
         const submittedTxHash = await API.submitTx(
             Buffer.from(signedTx.to_bytes(), "utf8").toString("hex")
         );
-        console.log(submittedTxHash);
+        return submittedTxHash;
     }
 }

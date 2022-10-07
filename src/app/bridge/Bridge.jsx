@@ -127,22 +127,28 @@ export default function Bridge() {
                     console.error(e);
                 }
             } else if (sourceChain === "ADA") {
-                const utxos = await nami.getUtxos();
-                const userAddress = await nami.getChangeAddress();
-                const toAddress = form.data["address"];
-                const txBody = await generateAdaTX(
-                    userAddress,
-                    a2hex(form.data.token.label),
-                    form.data.token.policyId,
-                    form.data["amount"],
-                    utxos,
-                    toAddress,
-                    String("addr_test1qpjwf0e2wv2lmdaws") //TODO
-                );
-                await nami.signAndSubmitTx(
-                    txBody,
-                    await getAux(toAddress, String("addr_test1qpjwf0e2wv2lmdaws"))
-                );
+                try {
+                    const utxos = await nami.getUtxos();
+                    const userAddress = await nami.getChangeAddress();
+                    const toAddress = form.data["address"];
+                    const txBody = await generateAdaTX(
+                        userAddress,
+                        a2hex(form.data.token.label),
+                        form.data.token.policyId,
+                        form.data["amount"],
+                        utxos,
+                        toAddress,
+                        String("addr_test1qpjwf0e2wv2lmdaws") //TODO
+                    );
+                    const result = await nami.signAndSubmitTx(
+                        txBody,
+                        await getAux(toAddress, String("addr_test1qpjwf0e2wv2lmdaws"))
+                    );
+                    alert("Done, txid: " + result);
+                } catch (e) {
+                    alert(e.info);
+                    console.error(e);
+                }
             }
         }
     }

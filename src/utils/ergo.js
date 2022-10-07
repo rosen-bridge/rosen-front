@@ -68,7 +68,14 @@ export const generateTX = async (inputs, changeAddress, toChain, toAddress, toke
         targetTokens
     );
 
-    const rosenBox = await getRosenBox(rosenValue, tokenId, amount, toChain, toAddress, changeAddress);
+    const rosenBox = await getRosenBox(
+        rosenValue,
+        tokenId,
+        amount,
+        toChain,
+        toAddress,
+        changeAddress
+    );
     const txOutputs = new wasm.ErgoBoxCandidates(rosenBox);
     const txBuilder = wasm.TxBuilder.new(
         boxSelection,
