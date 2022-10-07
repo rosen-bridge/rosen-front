@@ -94,4 +94,11 @@ export class Nami {
 
         return balance;
     }
+
+    async submitTx(txBody) {
+        const API = await this.getAPI();
+        const adaLib = await this.getADALib();
+
+        
+    }
 }
