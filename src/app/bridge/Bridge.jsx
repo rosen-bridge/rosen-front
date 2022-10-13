@@ -141,7 +141,7 @@ export default function Bridge() {
 
     useEffect(() => {
         const { data } = form;
-        if (data["token"] && walletConnected) {
+        if (data["token"] && Object.keys(data["token"]).length > 0 && walletConnected) {
             if (sourceChain === "ERG") {
                 nautilus.getBalance(data.token?.id).then((balance) => setBalance(balance));
             } else {
