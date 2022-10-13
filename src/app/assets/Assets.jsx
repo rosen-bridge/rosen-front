@@ -62,7 +62,9 @@ export default function Assets() {
                             />
                         </Tooltip>
                     </span>
-                    <Typography sx={{ fontSize: "x-large", color: "primary.main" }}>
+                    <Typography
+                        sx={{ fontSize: "x-large", color: "primary.main", wordBreak: "break-all" }}
+                    >
                         <NumberFormat
                             value={11925641973211233000000000000}
                             thousandSeparator
