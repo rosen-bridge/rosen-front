@@ -36,7 +36,7 @@ export default function PageBox({
     ...restProps
 }) {
     return (
-        <ContainerBox>
+        <ContainerBox options={{ suppressScrollX: true, useBothWheelAxes: false }}>
             <HeaderBox sx={{ pb: `${indent}px` }}>
                 <Container maxWidth={maxWidth}>
                     <Typography variant="h1">{title}</Typography>
