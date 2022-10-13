@@ -1,5 +1,7 @@
 # See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
 /.idea
+/.fleet
+
 # dependencies
 /node_modules
 /.pnp
@@ -22,7 +24,5 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 
-
 src/configs/tokenmap.json
-src/configs/ada.js
 
