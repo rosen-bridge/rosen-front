@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Box, Card, Divider, Grid, Stack, Typography } from "@mui/material";
-import { LoadingButton } from '@mui/lab';
+import { LoadingButton } from "@mui/lab";
 import PageBox from "layouts/PageBox";
 import InputSelect from "components/InputSelect";
 import useObject from "reducers/useObject";
@@ -58,6 +58,17 @@ export default function Bridge() {
         { id: "ADA", label: "Cardano", icon: "ADA.svg", tokenmap_name: "cardano" }
     ];
 
+    const resetAll = () => {
+        form.data.token = {};
+        form.data.target = {};
+        form.data.targetToken = {};
+        form.data.amount = "";
+        form.data.address = "";
+        setTargetTokens([]);
+        setWalletConnected(false);
+        setBalance(0);
+    };
+
     useEffect(() => {
         const { data } = form;
         if (!data["source"]) {
@@ -86,12 +97,7 @@ export default function Bridge() {
             );
         } else {
             if (data["source"].id !== sourceChain) {
-                form.data.token = {};
-                form.data.target = {};
-                form.data.targetToken = {};
-                setTargetTokens([]);
-                setWalletConnected(false);
-                setBalance(0);
+                resetAll();
                 setSourceChain(data["source"].id);
                 setTargetChains(allChains.filter((item) => item.id !== data["source"].id));
             }
@@ -160,8 +166,22 @@ export default function Bridge() {
                 await updateStatus();
             }
         } else {
+            const token = form.data["token"];
+            const target = form.data["target"];
+            const targetToken = form.data["targetToken"];
             const amount = form.data["amount"];
             const address = form.data["address"];
+            if (
+                !token ||
+                !target ||
+                !targetToken ||
+                Object.keys(token).length === 0 ||
+                Object.keys(target).length === 0 ||
+                Object.keys(targetToken).length === 0
+            ) {
+                alert("Please enter source and target");
+                return;
+            }
             if (!amount || !address) {
                 alert("Please enter amount and address");
                 return;
