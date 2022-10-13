@@ -215,6 +215,7 @@ export default function Bridge() {
                     const signedTx = await nautilus.signTX(uTx);
                     const result = await nautilus.submitTx(signedTx);
                     alert("Done, txid: " + result);
+                    resetAll();
                 } catch (e) {
                     alert(e.info);
                     console.error(e);
@@ -247,6 +248,7 @@ export default function Bridge() {
                         await getAux(toAddress, String("addr_test1qpjwf0e2wv2lmdaws"))
                     );
                     alert("Done, txid: " + result);
+                    resetAll();
                 } catch (e) {
                     alert(e.info);
                     console.error(e);
