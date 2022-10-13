@@ -1,3 +1,8 @@
+import { consts } from "../configs";
+
+const minBoxValue = consts.minBoxValue;
+const feeString = consts.ergoFee;
+
 export class Nautilus {
     constructor() {
         this.context = null;
@@ -37,7 +42,22 @@ export class Nautilus {
 
     async getUtxos(amount, token) {
         const context = await this.getContext();
-        return context.get_utxos(amount, token);
+        const tokenUTXOs = await context.get_utxos(amount, token);
+        const minErgRequired = 2 * Number(minBoxValue) + Number(feeString);
+        let ergAmount = 0;
+        const boxIds = [];
+        for (const box of tokenUTXOs) {
+            ergAmount += Number(box.value);
+            boxIds.push(box.boxId);
+        }
+        if (ergAmount < minErgRequired) {
+            let extraUTXOs = await context.get_utxos(minErgRequired, "ERG");
+            extraUTXOs = extraUTXOs.filter((box) => {
+                return boxIds.indexOf(box.boxId) === -1;
+            });
+            tokenUTXOs.push(...extraUTXOs);
+        }
+        return tokenUTXOs;
     }
 
     async getChangeAddress() {

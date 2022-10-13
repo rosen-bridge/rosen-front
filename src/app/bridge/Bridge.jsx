@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
-import { Box, Button, Card, Divider, Grid, Stack, Typography } from "@mui/material";
+import { Box, Card, Divider, Grid, Stack, Typography } from "@mui/material";
+import { LoadingButton } from '@mui/lab';
 import PageBox from "layouts/PageBox";
 import InputSelect from "components/InputSelect";
 import useObject from "reducers/useObject";
@@ -38,6 +39,9 @@ export default function Bridge() {
     const [balance, setBalance] = useState(0);
     const [ergoTokens, setErgoTokens] = useState([]);
     const [cardanoTokens, setCardanoTokens] = useState([]);
+    const [targetChains, setTargetChains] = useState([]);
+    const [targetTokens, setTargetTokens] = useState([]);
+    const [transfering, setTransfering] = useState(false);
 
     const updateStatus = async () => {
         if (sourceChain === "ERG") {
@@ -49,9 +53,9 @@ export default function Bridge() {
         }
     };
 
-    const sourceChains = [
-        { id: "ERG", label: "Ergo", icon: "ERG.svg" },
-        { id: "ADA", label: "Cardano", icon: "ADA.svg" }
+    const allChains = [
+        { id: "ERG", label: "Ergo", icon: "ERG.svg", tokenmap_name: "ergo" },
+        { id: "ADA", label: "Cardano", icon: "ADA.svg", tokenmap_name: "cardano" }
     ];
 
     useEffect(() => {
@@ -81,9 +85,59 @@ export default function Bridge() {
                 })
             );
         } else {
-            setSourceChain(data["source"].id);
+            if (data["source"].id !== sourceChain) {
+                form.data.token = {};
+                form.data.target = {};
+                form.data.targetToken = {};
+                setTargetTokens([]);
+                setWalletConnected(false);
+                setBalance(0);
+                setSourceChain(data["source"].id);
+                setTargetChains(allChains.filter((item) => item.id !== data["source"].id));
+            }
         }
     }, [form.data["source"]]);
+
+    useEffect(() => {
+        const { data } = form;
+        if (data["source"] && data["token"] && data["target"]) {
+            const source = Object.keys(data["source"]).length > 0 ? data["source"] : undefined;
+            const token = Object.keys(data["token"]).length > 0 ? data["token"] : undefined;
+            const target = Object.keys(data["target"]).length > 0 ? data["target"] : undefined;
+            if (source && token && target) {
+                const sourceName = source.tokenmap_name;
+                const targetName = target.tokenmap_name;
+                const sourceId = token_maps.idKeys[sourceName];
+                const token_records = token_maps.tokens?.filter((item) => {
+                    return item[sourceName][sourceId] === token.id;
+                });
+                if (token_records) {
+                    if (targetName === "ergo") {
+                        const ergoItem = token_records[0].ergo;
+                        const ergoToken = {
+                            id: ergoItem.tokenID,
+                            label: ergoItem.tokenName,
+                            icon: "ERG.svg",
+                            min: 10
+                        };
+                        setTargetTokens([ergoToken]);
+                        form.data.targetToken = ergoToken;
+                    } else if (targetName === "cardano") {
+                        const cardanoItem = token_records[0].cardano;
+                        const cardanoToken = {
+                            id: cardanoItem.fingerprint,
+                            label: hex2a(cardanoItem.assetID),
+                            policyId: cardanoItem.policyID,
+                            icon: "ADA.svg",
+                            min: 20
+                        };
+                        setTargetTokens([cardanoToken]);
+                        form.data.targetToken = cardanoToken;
+                    }
+                }
+            }
+        }
+    }, [form.data["target"], form.data["token"]]);
 
     useEffect(() => {
         const { data } = form;
@@ -106,17 +160,36 @@ export default function Bridge() {
                 await updateStatus();
             }
         } else {
-            //TODO: Check amount
+            const amount = form.data["amount"];
+            const address = form.data["address"];
+            if (!amount || !address) {
+                alert("Please enter amount and address");
+                return;
+            }
+            if (amount > balance) {
+                alert("Insufficient balance");
+                return;
+            }
+            setTransfering(true);
             if (sourceChain === "ERG") {
-                const uTxos = await nautilus.getUtxos(form.data["amount"], form.data.token.id);
+                let uTxos;
+                try {
+                    uTxos = await nautilus.getUtxos(amount, form.data.token.id);
+                } catch (e) {
+                    console.error(e);
+                    setWalletConnected(false);
+                    setBalance(0);
+                    setTransfering(false);
+                    return;
+                }
                 const changeAddress = await nautilus.getChangeAddress();
                 const uTx = await generateTX(
                     uTxos,
                     changeAddress,
                     form.data["target"].id,
-                    form.data["address"],
+                    address,
                     form.data.token.id,
-                    form.data["amount"]
+                    amount
                 );
                 try {
                     const signedTx = await nautilus.signTX(uTx);
@@ -126,16 +199,25 @@ export default function Bridge() {
                     alert(e.info);
                     console.error(e);
                 }
+                setTransfering(false);
             } else if (sourceChain === "ADA") {
                 try {
-                    const utxos = await nami.getUtxos();
+                    let utxos;
+                    try {
+                        utxos = await nami.getUtxos();
+                    } catch (e) {
+                        console.error(e);
+                        setWalletConnected(false);
+                        setBalance(0);
+                        return;
+                    }
                     const userAddress = await nami.getChangeAddress();
-                    const toAddress = form.data["address"];
+                    const toAddress = address;
                     const txBody = await generateAdaTX(
                         userAddress,
                         a2hex(form.data.token.label),
                         form.data.token.policyId,
-                        form.data["amount"],
+                        amount,
                         utxos,
                         toAddress,
                         String("addr_test1qpjwf0e2wv2lmdaws") //TODO
@@ -149,6 +231,7 @@ export default function Bridge() {
                     alert(e.info);
                     console.error(e);
                 }
+                setTransfering(false);
             }
         }
     }
@@ -170,7 +253,7 @@ export default function Bridge() {
                             <InputSelect
                                 name="source"
                                 label="Source"
-                                options={sourceChains}
+                                options={allChains}
                                 form={form}
                             />
                         </Grid>
@@ -190,7 +273,7 @@ export default function Bridge() {
                             <InputSelect
                                 name="target"
                                 label="Target"
-                                options={sourceChains}
+                                options={targetChains}
                                 disabled={!form.data["source"] || !form.data["token"]}
                                 form={form}
                             />
@@ -199,9 +282,7 @@ export default function Bridge() {
                             <InputSelect
                                 name="targetToken"
                                 label="To Token"
-                                options={
-                                    form.data.target?.id === "ERG" ? ergoTokens : cardanoTokens
-                                }
+                                options={targetTokens}
                                 disabled={!form.data["target"]}
                                 form={form}
                             />
@@ -262,7 +343,8 @@ export default function Bridge() {
                             color="secondary.dark"
                         />
                         <Box>
-                            <Button
+                            <LoadingButton
+                                loading={transfering}
                                 variant="contained"
                                 color="primary"
                                 size="large"
@@ -271,7 +353,7 @@ export default function Bridge() {
                                 sx={{ mt: 2 }}
                             >
                                 {walletConnected ? "Transfer" : "Connect Wallet"}
-                            </Button>
+                            </LoadingButton>
                         </Box>
                     </Stack>
                 </Stack>

@@ -5,6 +5,7 @@ import { string2uint8, unsignedErgoTxToProxy } from "../utils";
 let ergolib = import("ergo-lib-wasm-browser");
 const height = 0;
 const minBoxValue = consts.minBoxValue;
+const feeString = consts.ergoFee;
 const testnet = process.env.NETWORK === "testnet";
 
 const getRosenBox = async (rosenValue, tokenId, amount, toChain, toAddress, fromAddress) => {
@@ -51,9 +52,8 @@ const proxyTx = async (uTx, inputs) => {
 
 export const generateTX = async (inputs, changeAddress, toChain, toAddress, tokenId, amount) => {
     const wasm = await ergolib;
-    const fee = wasm.TxBuilder.SUGGESTED_TX_FEE();
     const rosenValue = wasm.BoxValue.from_i64(wasm.I64.from_str(minBoxValue));
-
+    const fee = wasm.BoxValue.from_i64(wasm.I64.from_str(feeString));
     const boxSelector = new wasm.SimpleBoxSelector();
     const targetBalance = wasm.BoxValue.from_i64(rosenValue.as_i64().checked_add(fee.as_i64()));
     const targetTokens = new wasm.Tokens();

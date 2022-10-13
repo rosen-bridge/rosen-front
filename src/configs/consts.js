@@ -1,5 +1,6 @@
 export const consts = {
     minBoxValue: "100000",
+    ergoFee: "1100000",
     networkFee: "1000000",
     bridgeFee: "1000000",
     adaFeeCoef: "44",
