@@ -5,6 +5,7 @@ import PageBox from "layouts/PageBox";
 import InputSelect from "components/InputSelect";
 import useObject from "reducers/useObject";
 import InputText from "components/InputText";
+import AlertDialog from "layouts/Dialog";
 import useMediaQuery from "@mui/material/useMediaQuery";
 import { useTheme } from "@mui/material/styles";
 import { Nautilus, Nami } from "../../wallets";
@@ -42,6 +43,35 @@ export default function Bridge() {
     const [targetChains, setTargetChains] = useState([]);
     const [targetTokens, setTargetTokens] = useState([]);
     const [transfering, setTransfering] = useState(false);
+    const [openDialog, setOpendialog] = useState(false);
+    const [dialogTitle, setDialogTitle] = useState("");
+    const [dialogText, setDialogText] = useState("");
+    const [dialogProceedText, setDialogProceedText] = useState("");
+
+    const closeDialog = () => {
+        setDialogTitle("");
+        setDialogText("");
+        setDialogProceedText("");
+        setOpendialog(false);
+    };
+
+    const proceedDialog = () => {
+        const installNautilus = dialogProceedText === "Install Nautilus";
+        const installNami = dialogProceedText === "Install Nami";
+        closeDialog();
+        if (installNautilus) {
+            window.open("https://github.com/capt-nemo429/nautilus-wallet#download", "_blank");
+        } else if (installNami) {
+            window.open("https://namiwallet.io/", "_blank");
+        }
+    };
+
+    const showAlert = (title, text, proceedText) => {
+        setDialogTitle(title);
+        setDialogText(text);
+        setDialogProceedText(proceedText);
+        setOpendialog(true);
+    };
 
     const updateStatus = async () => {
         if (sourceChain === "ERG") {
@@ -159,11 +189,21 @@ export default function Bridge() {
     async function handle_submit() {
         if (!walletConnected) {
             if (sourceChain === "ERG") {
-                await nautilus.connect();
-                await updateStatus();
+                const connected = await nautilus.connect();
+                if (connected) {
+                    await updateStatus();
+                } else {
+                    showAlert("Error", "Failed to connect to Nautilus wallet", "Install Nautilus");
+                }
             } else if (sourceChain === "ADA") {
-                await nami.connect();
-                await updateStatus();
+                const connected = await nami.connect();
+                if (connected) {
+                    await updateStatus();
+                } else {
+                    showAlert("Error", "Failed to connect to Nami wallet", "Install Nami");
+                }
+            } else {
+                showAlert("Error", "Please select source chain.", "");
             }
         } else {
             const token = form.data["token"];
@@ -177,17 +217,17 @@ export default function Bridge() {
                 !targetToken ||
                 Object.keys(token).length === 0 ||
                 Object.keys(target).length === 0 ||
-                Object.keys(targetToken).length === 0
+                Object.keys(targetToken).length === 0 ||
+                !amount ||
+                !address
             ) {
-                alert("Please enter source and target");
-                return;
-            }
-            if (!amount || !address) {
-                alert("Please enter amount and address");
+                setDialogTitle("Error");
+                setDialogText("Please fill out the form completely before submitting.");
+                setOpendialog(true);
                 return;
             }
             if (amount > balance) {
-                alert("Insufficient balance");
+                showAlert("Error", "Insufficient token balance.", "");
                 return;
             }
             setTransfering(true);
@@ -214,10 +254,10 @@ export default function Bridge() {
                 try {
                     const signedTx = await nautilus.signTX(uTx);
                     const result = await nautilus.submitTx(signedTx);
-                    alert("Done, txid: " + result);
+                    showAlert("Success", "Transaction submitted successfully. TxId: " + result, "");
                     resetAll();
                 } catch (e) {
-                    alert(e.info);
+                    showAlert("Error", "Failed to submit transaction. " + e.info, "");
                     console.error(e);
                 }
                 setTransfering(false);
@@ -247,10 +287,10 @@ export default function Bridge() {
                         txBody,
                         await getAux(toAddress, String("addr_test1qpjwf0e2wv2lmdaws"))
                     );
-                    alert("Done, txid: " + result);
+                    showAlert("Success", "Transaction submitted successfully. TxId: " + result, "");
                     resetAll();
                 } catch (e) {
-                    alert(e.info);
+                    showAlert("Error", "Failed to submit transaction. " + e.info, "");
                     console.error(e);
                 }
                 setTransfering(false);
@@ -264,6 +304,15 @@ export default function Bridge() {
             subtitle="Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. "
             maxWidth="md"
         >
+            <AlertDialog
+                open={openDialog}
+                onClose={closeDialog}
+                title={dialogTitle}
+                text={dialogText}
+                closeText="Close"
+                proceedText={dialogProceedText}
+                onProceed={proceedDialog}
+            />
             <Card variant="outlined" sx={{ mb: 5, bgcolor: "background.content" }}>
                 <Stack
                     direction={{ xs: "column", md: "row" }}

@@ -11,7 +11,7 @@ export class Nami {
         const granted = await window.cardano?.nami?.enable();
 
         if (!granted) {
-            alert("Failed to connect!");
+            console.error("Failed to connect!");
             return false;
         }
         this.API = granted;
@@ -20,7 +20,7 @@ export class Nami {
 
     async getAPI() {
         if (!(await this.isConnected())) {
-            alert("Please connect to Nami first");
+            console.error("Failed to connect!");
             return;
         }
         if (this.API == null) {

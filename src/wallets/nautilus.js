@@ -10,7 +10,7 @@ export class Nautilus {
 
     async getContext() {
         if (!(await this.isConnected())) {
-            alert("Please connect to Nautilus first");
+            console.error("Failed to connect!");
             return;
         }
         if (this.context == null) {
@@ -25,7 +25,7 @@ export class Nautilus {
         });
 
         if (!granted) {
-            alert("Failed to connect!");
+            console.error("Failed to connect!");
             return false;
         }
         return true;
