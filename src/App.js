@@ -23,10 +23,10 @@ function App() {
                 <Route path="/" element={<AppLayout />}>
                     <Route index element={<Redirect />} />
                     <Route path="bridge" element={<Bridge />} />
-                    <Route path="assets" element={<Assets />} />
-                    <Route path="transactions" element={<Transactions />} />
+                    {/* <Route path="assets" element={<Assets />} /> */}
+                    {/* <Route path="transactions" element={<Transactions />} /> */}
                     <Route path="support" element={<Support />} />
-                    <Route path="dashboard" element={<Dashboard />} />
+                    {/* <Route path="dashboard" element={<Dashboard />} /> */}
                     <Route path="*" element={<Redirect />} />
                 </Route>
             </Routes>

@@ -67,26 +67,26 @@ export const items = [
         label: "Bridge",
         icon: UndoIcon
     },
-    {
-        path: "/assets",
-        label: "Assets",
-        icon: HomeRepairServiceIcon
-    },
-    {
-        path: "/transactions",
-        label: "Transactions",
-        icon: RepeatIcon
-    },
+    // {
+    //     path: "/assets",
+    //     label: "Assets",
+    //     icon: HomeRepairServiceIcon
+    // },
+    // {
+    //     path: "/transactions",
+    //     label: "Transactions",
+    //     icon: RepeatIcon
+    // },
     {
         path: "/support",
         label: "Support",
         icon: SupportAgentIcon
     },
-    {
-        path: "/dashboard",
-        label: "Dashboard",
-        icon: WidgetsRoundedIcon
-    }
+    // {
+    //     path: "/dashboard",
+    //     label: "Dashboard",
+    //     icon: WidgetsRoundedIcon
+    // }
 ];
 
 export default function AppNav() {
