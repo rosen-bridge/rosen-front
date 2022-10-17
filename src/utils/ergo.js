@@ -8,7 +8,6 @@ const minBoxValue = consts.minBoxValue;
 const feeString = consts.ergoFee;
 
 const getChangeBox = async (inputs, changeAddress, tokenId, tokenAmount) => {
-    console.log("inputs: ", inputs);
     const wasm = await ergolib;
     let sumValue = wasm.I64.from_str("0");
     const tokenMap = new Map();
@@ -25,7 +24,7 @@ const getChangeBox = async (inputs, changeAddress, tokenId, tokenAmount) => {
             }
         }
     }
-    const otherBoxesValue = -1 * Number(minBoxValue) + Number(feeString);
+    const otherBoxesValue = -1 * (Number(minBoxValue) + Number(feeString));
     sumValue = sumValue.checked_add(wasm.I64.from_str(otherBoxesValue.toString()));
     if (tokenMap.get(tokenId).to_str() === tokenAmount.toString()) {
         tokenMap.delete(tokenId);

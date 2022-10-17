@@ -10,7 +10,7 @@ import useMediaQuery from "@mui/material/useMediaQuery";
 import { useTheme } from "@mui/material/styles";
 import { Nautilus, Nami } from "../../wallets";
 import token_maps from "../../configs/tokenmap.json";
-import { hex2ascii, ascii2hex, generateTX, generateAdaTX, getAux } from "../../utils";
+import { hex2ascii, connectToWallet, transfer } from "../../utils";
 import { consts } from "configs";
 
 const nautilus = new Nautilus();
@@ -110,7 +110,8 @@ export default function Bridge() {
                         id: ergoItem.tokenID,
                         label: ergoItem.tokenName,
                         icon: "ERG.svg",
-                        min: 10
+                        min: 1,
+                        decimals: ergoItem.decimals
                     };
                 })
             );
@@ -122,7 +123,7 @@ export default function Bridge() {
                         label: hex2ascii(cardanoItem.assetID),
                         policyId: cardanoItem.policyID,
                         icon: "ADA.svg",
-                        min: 20
+                        min: 1
                     };
                 })
             );
@@ -155,7 +156,7 @@ export default function Bridge() {
                             id: ergoItem.tokenID,
                             label: ergoItem.tokenName,
                             icon: "ERG.svg",
-                            min: 10
+                            min: 1
                         };
                         setTargetTokens([ergoToken]);
                         form.data.targetToken = ergoToken;
@@ -166,7 +167,7 @@ export default function Bridge() {
                             label: hex2ascii(cardanoItem.assetID),
                             policyId: cardanoItem.policyID,
                             icon: "ADA.svg",
-                            min: 20
+                            min: 1
                         };
                         setTargetTokens([cardanoToken]);
                         form.data.targetToken = cardanoToken;
@@ -180,7 +181,9 @@ export default function Bridge() {
         const { data } = form;
         if (data["token"] && Object.keys(data["token"]).length > 0 && walletConnected) {
             if (sourceChain === "ERG") {
-                nautilus.getBalance(data.token?.id).then((balance) => setBalance(balance));
+                nautilus
+                    .getBalance(data.token?.id)
+                    .then((balance) => setBalance(balance / Math.pow(10, data.token?.decimals)));
             } else {
                 nami.getBalance(data.token?.id).then((balance) => setBalance(balance));
             }
@@ -189,19 +192,21 @@ export default function Bridge() {
 
     async function handle_submit() {
         if (!walletConnected) {
-            if (sourceChain === "ERG") {
-                const connected = await nautilus.connect();
-                if (connected) {
-                    await updateStatus();
-                } else {
-                    showAlert("Error", "Failed to connect to Nautilus wallet", "Install Nautilus");
-                }
-            } else if (sourceChain === "ADA") {
-                const connected = await nami.connect();
-                if (connected) {
-                    await updateStatus();
-                } else {
-                    showAlert("Error", "Failed to connect to Nami wallet", "Install Nami");
+            const result = await connectToWallet(sourceChain, nautilus, nami);
+            if (result === 0) updateStatus();
+            else if (result === 1) {
+                if (sourceChain === "ERG") {
+                    showAlert(
+                        "Install Nautilus",
+                        "Please install Nautilus wallet to continue",
+                        "Install Nautilus"
+                    );
+                } else if (sourceChain === "ADA") {
+                    showAlert(
+                        "Install Nami",
+                        "Please install Nami wallet to continue",
+                        "Install Nami"
+                    );
                 }
             } else {
                 showAlert("Error", "Please select source chain.", "");
@@ -210,7 +215,7 @@ export default function Bridge() {
             const token = form.data["token"];
             const target = form.data["target"];
             const targetToken = form.data["targetToken"];
-            const amount = form.data["amount"];
+            let amount = form.data["amount"];
             const address = form.data["address"];
             if (
                 !token ||
@@ -232,71 +237,34 @@ export default function Bridge() {
                 return;
             }
             setTransfering(true);
-            if (sourceChain === "ERG") {
-                let uTxos;
-                try {
-                    uTxos = await nautilus.getUtxos(amount, form.data.token.id);
-                } catch (e) {
-                    showAlert("Error", "Failed to get boxes." + e.info, "");
-                    console.error(e);
-                    setWalletConnected(false);
-                    setBalance(0);
-                    setTransfering(false);
-                    return;
-                }
-                const changeAddress = await nautilus.getChangeAddress();
-                const uTx = await generateTX(
-                    uTxos,
-                    changeAddress,
-                    form.data["target"].id,
-                    address,
-                    form.data.token.id,
-                    amount
-                );
-                try {
-                    const signedTx = await nautilus.signTX(uTx);
-                    const result = await nautilus.submitTx(signedTx);
-                    showAlert("Success", "Transaction submitted successfully. TxId: " + result, "");
-                    resetAll();
-                } catch (e) {
-                    showAlert("Error", "Failed to submit transaction. " + e.info, "");
-                    console.error(e);
-                }
-                setTransfering(false);
-            } else if (sourceChain === "ADA") {
-                try {
-                    let utxos;
-                    try {
-                        utxos = await nami.getUtxos();
-                    } catch (e) {
-                        showAlert("Error", "Failed to get boxes." + e.info, "");
-                        console.error(e);
-                        setWalletConnected(false);
-                        setBalance(0);
-                        return;
-                    }
-                    const userAddress = await nami.getChangeAddress();
-                    const toAddress = address;
-                    //TODO: hardcoded address is just for test, we need to change it after metadata format is finalized
-                    const txBody = await generateAdaTX(
-                        userAddress,
-                        ascii2hex(form.data.token.label),
-                        form.data.token.policyId,
+            try {
+                let txId = "";
+                if (sourceChain === "ERG") {
+                    amount = amount * Math.pow(10, token.decimals);
+                    txId = await transfer(
+                        sourceChain,
+                        nautilus,
                         amount,
-                        utxos,
-                        toAddress,
-                        String("addr_test1qpjwf0e2wv2lmdaws")
+                        token.id,
+                        target.id,
+                        address
                     );
-                    const result = await nami.signAndSubmitTx(
-                        txBody,
-                        await getAux(toAddress, String("addr_test1qpjwf0e2wv2lmdaws"))
+                } else if (sourceChain === "ADA") {
+                    txId = await transfer(
+                        sourceChain,
+                        nami,
+                        amount,
+                        token.policyId,
+                        target.id,
+                        address,
+                        token.label
                     );
-                    showAlert("Success", "Transaction submitted successfully. TxId: " + result, "");
-                    resetAll();
-                } catch (e) {
-                    showAlert("Error", "Failed to submit transaction. " + e.info, "");
-                    console.error(e);
                 }
+                showAlert("Success", "Transaction submitted successfully. TxId: " + txId, "");
+                resetAll();
+            } catch (e) {
+                showAlert("Error", "Failed to submit transaction. " + e.message, "");
+            } finally {
                 setTransfering(false);
             }
         }
