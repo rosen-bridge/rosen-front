@@ -9,8 +9,6 @@ const pureVersion = releaseTag.replace("v", "");
 const url = `https://github.com/${githubRepo}/releases/download/${releaseTag}/rosen-${pureVersion}.json`;
 let settings = { method: "Get" };
 
-console.log(url)
-
 fetch(url, settings)
     .then(res => res.json())
     .then((json) => {
