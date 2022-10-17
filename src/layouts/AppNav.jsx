@@ -81,7 +81,7 @@ export const items = [
         path: "/support",
         label: "Support",
         icon: SupportAgentIcon
-    },
+    }
     // {
     //     path: "/dashboard",
     //     label: "Dashboard",

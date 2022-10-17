@@ -39,8 +39,35 @@ const getRosenBox = async (rosenValue, tokenId, amount, toChain, toAddress, from
     return rosenBox.build();
 };
 
-const proxyTx = async (uTx, inputs) => {
+const proxyTx = async (uTx, inputs, targetTokenId) => {
     const serial = JSON.parse(uTx.to_json());
+    let totalInputTokens = 0;
+    for (const input of inputs) {
+        let totalBoxTokens = 0;
+        for (const token of input.assets) {
+            if (token.tokenId === targetTokenId) {
+                totalBoxTokens += Number(token.amount);
+            }
+        }
+        totalInputTokens += totalBoxTokens;
+    }
+    let totalOutputTokens = serial.outputs[0].assets[0].amount;
+    for (const token of serial.outputs[1].assets) {
+        if (token.tokenId === targetTokenId) {
+            totalOutputTokens += Number(token.amount);
+        }
+    }
+    if (totalInputTokens !== totalOutputTokens) {
+        let burningAmount = totalInputTokens - totalOutputTokens;
+        const newChangeBoxAssets = serial.outputs[1].assets.map((asset) => {
+            if (asset.tokenId === targetTokenId) {
+                asset.amount = Number(asset.amount) + burningAmount;
+                burningAmount = 0;
+            }
+            return asset;
+        });
+        serial.outputs[1].assets = newChangeBoxAssets;
+    }
     serial.inputs = inputs.map((curIn) => {
         return {
             ...curIn,
@@ -88,5 +115,5 @@ export const generateTX = async (inputs, changeAddress, toChain, toAddress, toke
     );
 
     const uTx = txBuilder.build();
-    return proxyTx(uTx, inputs);
+    return proxyTx(uTx, inputs, tokenId);
 };
