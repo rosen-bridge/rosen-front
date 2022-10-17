@@ -1,4 +1,4 @@
-export function hex2a(hexx) {
+export function hex2ascii(hexx) {
     var hex = hexx.toString(); //force conversion
     var str = "";
     for (var i = 0; i < hex.length; i += 2)
@@ -6,7 +6,7 @@ export function hex2a(hexx) {
     return str;
 }
 
-export function a2hex(str) {
+export function ascii2hex(str) {
     var arr1 = [];
     for (var n = 0, l = str.length; n < l; n++) {
         var hex = Number(str.charCodeAt(n)).toString(16);

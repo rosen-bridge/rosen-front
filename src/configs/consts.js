@@ -9,5 +9,7 @@ export const consts = {
     adaKeyDeposit: "2000000",
     adaMinCoin: "34482",
     adaMaxValueSize: 5000,
-    adaMaxTxSize: 16384
+    adaMaxTxSize: 16384,
+    nautilusUrl: "https://github.com/capt-nemo429/nautilus-wallet#download",
+    namiUrl: "https://namiwallet.io/"
 };

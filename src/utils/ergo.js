@@ -6,7 +6,6 @@ let ergolib = import("ergo-lib-wasm-browser");
 const height = 0;
 const minBoxValue = consts.minBoxValue;
 const feeString = consts.ergoFee;
-const testnet = process.env.NETWORK === "testnet";
 
 const getChangeBox = async (inputs, changeAddress, tokenId, tokenAmount) => {
     console.log("inputs: ", inputs);
@@ -39,11 +38,7 @@ const getChangeBox = async (inputs, changeAddress, tokenId, tokenAmount) => {
 
     const changeBox = new wasm.ErgoBoxCandidateBuilder(
         wasm.BoxValue.from_i64(sumValue),
-        wasm.Contract.pay_to_address(
-            testnet
-                ? wasm.Address.from_testnet_str(changeAddress)
-                : wasm.Address.from_mainnet_str(changeAddress)
-        ),
+        wasm.Contract.pay_to_address(wasm.Address.from_base58(changeAddress)),
         height
     );
     tokenMap.forEach((amount, tokenId) => {
@@ -59,11 +54,7 @@ const getRosenBox = async (rosenValue, tokenId, amount, toChain, toAddress, from
 
     const rosenBox = new wasm.ErgoBoxCandidateBuilder(
         rosenValue,
-        wasm.Contract.pay_to_address(
-            testnet
-                ? wasm.Address.from_testnet_str(rosen_config["ergo_bank_address"])
-                : wasm.Address.from_mainnet_str(rosen_config["ergo_bank_address"])
-        ),
+        wasm.Contract.pay_to_address(wasm.Address.from_base58(rosen_config["ergo_bank_address"])),
         height
     );
     rosenBox.add_token(

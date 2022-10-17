@@ -10,7 +10,8 @@ import useMediaQuery from "@mui/material/useMediaQuery";
 import { useTheme } from "@mui/material/styles";
 import { Nautilus, Nami } from "../../wallets";
 import token_maps from "../../configs/tokenmap.json";
-import { hex2a, a2hex, generateTX, generateAdaTX, getAux } from "../../utils";
+import { hex2ascii, ascii2hex, generateTX, generateAdaTX, getAux } from "../../utils";
+import { consts } from 'configs';
 
 const nautilus = new Nautilus();
 const nami = new Nami();
@@ -60,9 +61,9 @@ export default function Bridge() {
         const installNami = dialogProceedText === "Install Nami";
         closeDialog();
         if (installNautilus) {
-            window.open("https://github.com/capt-nemo429/nautilus-wallet#download", "_blank");
+            window.open(consts.nautilusUrl, "_blank");
         } else if (installNami) {
-            window.open("https://namiwallet.io/", "_blank");
+            window.open(consts.namiUrl, "_blank");
         }
     };
 
@@ -118,7 +119,7 @@ export default function Bridge() {
                     const cardanoItem = item.cardano;
                     return {
                         id: cardanoItem.fingerprint,
-                        label: hex2a(cardanoItem.assetID),
+                        label: hex2ascii(cardanoItem.assetID),
                         policyId: cardanoItem.policyID,
                         icon: "ADA.svg",
                         min: 20
@@ -162,7 +163,7 @@ export default function Bridge() {
                         const cardanoItem = token_records[0].cardano;
                         const cardanoToken = {
                             id: cardanoItem.fingerprint,
-                            label: hex2a(cardanoItem.assetID),
+                            label: hex2ascii(cardanoItem.assetID),
                             policyId: cardanoItem.policyID,
                             icon: "ADA.svg",
                             min: 20
@@ -236,6 +237,7 @@ export default function Bridge() {
                 try {
                     uTxos = await nautilus.getUtxos(amount, form.data.token.id);
                 } catch (e) {
+                    showAlert("Error", "Failed to get boxes." + e.info, "");
                     console.error(e);
                     setWalletConnected(false);
                     setBalance(0);
@@ -267,6 +269,7 @@ export default function Bridge() {
                     try {
                         utxos = await nami.getUtxos();
                     } catch (e) {
+                        showAlert("Error", "Failed to get boxes." + e.info, "");
                         console.error(e);
                         setWalletConnected(false);
                         setBalance(0);
@@ -274,14 +277,15 @@ export default function Bridge() {
                     }
                     const userAddress = await nami.getChangeAddress();
                     const toAddress = address;
+                    //TODO: hardcoded address is just for test, we need to change it after metadata format is finalized
                     const txBody = await generateAdaTX(
                         userAddress,
-                        a2hex(form.data.token.label),
+                        ascii2hex(form.data.token.label),
                         form.data.token.policyId,
                         amount,
                         utxos,
                         toAddress,
-                        String("addr_test1qpjwf0e2wv2lmdaws") //TODO
+                        String("addr_test1qpjwf0e2wv2lmdaws")
                     );
                     const result = await nami.signAndSubmitTx(
                         txBody,
