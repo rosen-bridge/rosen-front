@@ -11,7 +11,7 @@ import { useTheme } from "@mui/material/styles";
 import { Nautilus, Nami } from "../../wallets";
 import token_maps from "../../configs/tokenmap.json";
 import { hex2ascii, ascii2hex, generateTX, generateAdaTX, getAux } from "../../utils";
-import { consts } from 'configs';
+import { consts } from "configs";
 
 const nautilus = new Nautilus();
 const nami = new Nami();

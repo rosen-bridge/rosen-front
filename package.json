@@ -30,7 +30,8 @@
   },
   "scripts": {
     "start": "node ./scripts/start.js",
-    "build": "node ./scripts/tokenmap.js && node ./scripts/build.js",
+    "prebuild": "node ./scripts/tokenmap.js && node ./scripts/bank-address.js",
+    "build": "npm run prebuild && node ./scripts/build.js",
     "test": "react-scripts test",
     "eject": "react-scripts eject",
     "fix": "prettier src --write"

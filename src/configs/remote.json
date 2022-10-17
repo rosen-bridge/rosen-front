@@ -1,0 +1,10 @@
+{
+    "tokenmap": {
+        "github_repo": "SepehrGanji/tokenmap-test",
+        "release_tag": "v0.3"
+    },
+    "bank": {
+        "github_repo": "SepehrGanji/tokenmap-test",
+        "release_tag": "v0.3"
+    }
+}
