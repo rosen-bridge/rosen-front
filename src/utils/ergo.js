@@ -8,6 +8,50 @@ const minBoxValue = consts.minBoxValue;
 const feeString = consts.ergoFee;
 const testnet = process.env.NETWORK === "testnet";
 
+const getChangeBox = async (inputs, changeAddress, tokenId, tokenAmount) => {
+    console.log("inputs: ", inputs);
+    const wasm = await ergolib;
+    let sumValue = wasm.I64.from_str("0");
+    const tokenMap = new Map();
+    for (const box of inputs) {
+        sumValue = sumValue.checked_add(wasm.I64.from_str(box.value));
+        for (const asset of box.assets) {
+            if (tokenMap.has(asset.tokenId)) {
+                tokenMap.set(
+                    asset.tokenId,
+                    tokenMap.get(asset.tokenId).checked_add(wasm.I64.from_str(asset.amount))
+                );
+            } else {
+                tokenMap.set(asset.tokenId, wasm.I64.from_str(asset.amount.toString()));
+            }
+        }
+    }
+    const otherBoxesValue = -1 * Number(minBoxValue) + Number(feeString);
+    sumValue = sumValue.checked_add(wasm.I64.from_str(otherBoxesValue.toString()));
+    if (tokenMap.get(tokenId).to_str() === tokenAmount.toString()) {
+        tokenMap.delete(tokenId);
+    } else {
+        tokenMap.set(
+            tokenId,
+            tokenMap.get(tokenId).checked_add(wasm.I64.from_str((-1 * tokenAmount).toString()))
+        );
+    }
+
+    const changeBox = new wasm.ErgoBoxCandidateBuilder(
+        wasm.BoxValue.from_i64(sumValue),
+        wasm.Contract.pay_to_address(
+            testnet
+                ? wasm.Address.from_testnet_str(changeAddress)
+                : wasm.Address.from_mainnet_str(changeAddress)
+        ),
+        height
+    );
+    tokenMap.forEach((amount, tokenId) => {
+        changeBox.add_token(wasm.TokenId.from_str(tokenId), wasm.TokenAmount.from_i64(amount));
+    });
+    return changeBox.build();
+};
+
 const getRosenBox = async (rosenValue, tokenId, amount, toChain, toAddress, fromAddress) => {
     const wasm = await ergolib;
     const networkFee = consts.networkFee;
@@ -39,35 +83,8 @@ const getRosenBox = async (rosenValue, tokenId, amount, toChain, toAddress, from
     return rosenBox.build();
 };
 
-const proxyTx = async (uTx, inputs, targetTokenId) => {
+const proxyTx = async (uTx, inputs) => {
     const serial = JSON.parse(uTx.to_json());
-    let totalInputTokens = 0;
-    for (const input of inputs) {
-        let totalBoxTokens = 0;
-        for (const token of input.assets) {
-            if (token.tokenId === targetTokenId) {
-                totalBoxTokens += Number(token.amount);
-            }
-        }
-        totalInputTokens += totalBoxTokens;
-    }
-    let totalOutputTokens = serial.outputs[0].assets[0].amount;
-    for (const token of serial.outputs[1].assets) {
-        if (token.tokenId === targetTokenId) {
-            totalOutputTokens += Number(token.amount);
-        }
-    }
-    if (totalInputTokens !== totalOutputTokens) {
-        let burningAmount = totalInputTokens - totalOutputTokens;
-        const newChangeBoxAssets = serial.outputs[1].assets.map((asset) => {
-            if (asset.tokenId === targetTokenId) {
-                asset.amount = Number(asset.amount) + burningAmount;
-                burningAmount = 0;
-            }
-            return asset;
-        });
-        serial.outputs[1].assets = newChangeBoxAssets;
-    }
     serial.inputs = inputs.map((curIn) => {
         return {
             ...curIn,
@@ -80,21 +97,6 @@ const proxyTx = async (uTx, inputs, targetTokenId) => {
 export const generateTX = async (inputs, changeAddress, toChain, toAddress, tokenId, amount) => {
     const wasm = await ergolib;
     const rosenValue = wasm.BoxValue.from_i64(wasm.I64.from_str(minBoxValue));
-    const fee = wasm.BoxValue.from_i64(wasm.I64.from_str(feeString));
-    const boxSelector = new wasm.SimpleBoxSelector();
-    const targetBalance = wasm.BoxValue.from_i64(rosenValue.as_i64().checked_add(fee.as_i64()));
-    const targetTokens = new wasm.Tokens();
-    const token = new wasm.Token(
-        wasm.TokenId.from_str(tokenId),
-        wasm.TokenAmount.from_i64(wasm.I64.from_str(amount.toString()))
-    );
-    targetTokens.add(token);
-    const boxSelection = boxSelector.select(
-        wasm.ErgoBoxes.from_boxes_json(inputs),
-        targetBalance,
-        targetTokens
-    );
-
     const rosenBox = await getRosenBox(
         rosenValue,
         tokenId,
@@ -103,17 +105,24 @@ export const generateTX = async (inputs, changeAddress, toChain, toAddress, toke
         toAddress,
         changeAddress
     );
-    const txOutputs = new wasm.ErgoBoxCandidates(rosenBox);
-    const txBuilder = wasm.TxBuilder.new(
-        boxSelection,
-        txOutputs,
-        height,
-        fee,
-        testnet
-            ? wasm.Address.from_testnet_str(changeAddress)
-            : wasm.Address.from_mainnet_str(changeAddress)
+    const changeBox = await getChangeBox(inputs, changeAddress, tokenId, amount);
+    const feeBox = wasm.ErgoBoxCandidate.new_miner_fee_box(
+        wasm.BoxValue.from_i64(wasm.I64.from_str(feeString)),
+        height
     );
 
-    const uTx = txBuilder.build();
-    return proxyTx(uTx, inputs, tokenId);
+    const txOutputs = new wasm.ErgoBoxCandidates(rosenBox);
+    txOutputs.add(changeBox);
+    txOutputs.add(feeBox);
+
+    const inputIds = inputs.map((input) => input.boxId);
+    const unsignedInputArray = inputIds
+        .map(wasm.BoxId.from_str)
+        .map(wasm.UnsignedInput.from_box_id);
+    const unsignedInputs = new wasm.UnsignedInputs();
+    unsignedInputArray.forEach((i) => unsignedInputs.add(i));
+
+    const uTx = new wasm.UnsignedTransaction(unsignedInputs, new wasm.DataInputs(), txOutputs);
+
+    return proxyTx(uTx, inputs);
 };
