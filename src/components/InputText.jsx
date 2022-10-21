@@ -38,7 +38,7 @@ export default function InputText({
     helperText,
     ...restProps
 }) {
-    const value = form.data[name];
+    const value = form.data[name] || "";
 
     function handle_change(e) {
         form.put(name, e.target.value);

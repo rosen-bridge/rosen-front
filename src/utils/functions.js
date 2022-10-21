@@ -1,9 +1,18 @@
-export function hex2a(hexx) {
+export function hex2ascii(hexx) {
     var hex = hexx.toString(); //force conversion
     var str = "";
     for (var i = 0; i < hex.length; i += 2)
         str += String.fromCharCode(parseInt(hex.substr(i, 2), 16));
     return str;
+}
+
+export function ascii2hex(str) {
+    var arr1 = [];
+    for (var n = 0, l = str.length; n < l; n++) {
+        var hex = Number(str.charCodeAt(n)).toString(16);
+        arr1.push(hex);
+    }
+    return arr1.join("");
 }
 
 export function string2uint8(str) {
@@ -39,4 +48,12 @@ export function unsignedErgoTxToProxy(tx) {
         inputs: tx.inputs.map((i) => unsignedInputToProxy(i)),
         outputs: tx.outputs.map((o) => ergoBoxCandidateToProxy(o))
     };
+}
+
+export function HexToBuffer(string) {
+    return Buffer.from(string, "hex");
+}
+
+export function HexToAscii(string) {
+    return HexToBuffer(string).toString("ascii");
 }

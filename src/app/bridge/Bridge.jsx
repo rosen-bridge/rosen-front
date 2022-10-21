@@ -1,28 +1,20 @@
 import React, { useState, useEffect } from "react";
-import { Box, Button, Card, Divider, Grid, Stack, Typography } from "@mui/material";
+import { Box, Card, Divider, Grid, Stack, Typography } from "@mui/material";
+import { LoadingButton } from "@mui/lab";
 import PageBox from "layouts/PageBox";
 import InputSelect from "components/InputSelect";
 import useObject from "reducers/useObject";
 import InputText from "components/InputText";
+import AlertDialog from "layouts/Dialog";
 import useMediaQuery from "@mui/material/useMediaQuery";
 import { useTheme } from "@mui/material/styles";
-import {
-    connectNautilus,
-    checkNautilusConnected,
-    getBalance,
-    getUtxos,
-    getChangeAddress,
-    signTX,
-    submitTx
-} from "../../wallets";
+import { Nautilus, Nami } from "../../wallets";
 import token_maps from "../../configs/tokenmap.json";
-import { hex2a, generateTX } from "../../utils";
+import { hex2ascii, connectToWallet, transfer } from "../../utils";
+import { consts } from "configs";
 
-const updateStatus = (setWalletConnected) => {
-    checkNautilusConnected().then((connected) => {
-        setWalletConnected(connected);
-    });
-};
+const nautilus = new Nautilus();
+const nami = new Nami();
 
 export function ValueDisplay({ title, value, unit, color = "primary" }) {
     return (
@@ -45,14 +37,68 @@ export default function Bridge() {
     const mdUp = useMediaQuery(theme.breakpoints.up("md"));
     const form = useObject();
     const [walletConnected, setWalletConnected] = useState(false);
+    const [sourceChain, setSourceChain] = useState("");
+    const [balance, setBalance] = useState(0);
     const [ergoTokens, setErgoTokens] = useState([]);
     const [cardanoTokens, setCardanoTokens] = useState([]);
-    const [balance, setBalance] = useState(0);
+    const [targetChains, setTargetChains] = useState([]);
+    const [targetTokens, setTargetTokens] = useState([]);
+    const [transfering, setTransfering] = useState(false);
+    const [openDialog, setOpendialog] = useState(false);
+    const [dialogTitle, setDialogTitle] = useState("");
+    const [dialogText, setDialogText] = useState("");
+    const [dialogProceedText, setDialogProceedText] = useState("");
 
-    const sourceChains = [
-        { id: "ERG", label: "Ergo", icon: "ERG.svg" },
-        { id: "ADA", label: "Cardano", icon: "ADA.svg" }
+    const closeDialog = () => {
+        setDialogTitle("");
+        setDialogText("");
+        setDialogProceedText("");
+        setOpendialog(false);
+    };
+
+    const proceedDialog = () => {
+        const installNautilus = dialogProceedText === "Install Nautilus";
+        const installNami = dialogProceedText === "Install Nami";
+        closeDialog();
+        if (installNautilus) {
+            window.open(consts.nautilusUrl, "_blank");
+        } else if (installNami) {
+            window.open(consts.namiUrl, "_blank");
+        }
+    };
+
+    const showAlert = (title, text, proceedText) => {
+        setDialogTitle(title);
+        setDialogText(text);
+        setDialogProceedText(proceedText);
+        setOpendialog(true);
+    };
+
+    const updateStatus = async () => {
+        if (sourceChain === "ERG") {
+            const connected = await nautilus.isConnected();
+            setWalletConnected(connected);
+        } else {
+            const connected = await nami.isConnected();
+            setWalletConnected(connected);
+        }
+    };
+
+    const allChains = [
+        { id: "ERG", label: "Ergo", icon: "ERG.svg", tokenmap_name: "ergo" },
+        { id: "ADA", label: "Cardano", icon: "ADA.svg", tokenmap_name: "cardano" }
     ];
+
+    const resetAll = () => {
+        form.data.token = {};
+        form.data.target = {};
+        form.data.targetToken = {};
+        form.data.amount = "";
+        form.data.address = "";
+        setTargetTokens([]);
+        setWalletConnected(false);
+        setBalance(0);
+    };
 
     useEffect(() => {
         const { data } = form;
@@ -64,7 +110,8 @@ export default function Bridge() {
                         id: ergoItem.tokenID,
                         label: ergoItem.tokenName,
                         icon: "ERG.svg",
-                        min: 10
+                        min: 1,
+                        decimals: ergoItem.decimals
                     };
                 })
             );
@@ -73,47 +120,152 @@ export default function Bridge() {
                     const cardanoItem = item.cardano;
                     return {
                         id: cardanoItem.fingerprint,
-                        label: hex2a(cardanoItem.assetID),
+                        label: hex2ascii(cardanoItem.assetID),
+                        policyId: cardanoItem.policyID,
                         icon: "ADA.svg",
-                        min: 20
+                        min: 1
                     };
                 })
             );
+        } else {
+            if (data["source"].id !== sourceChain) {
+                resetAll();
+                setSourceChain(data["source"].id);
+                setTargetChains(allChains.filter((item) => item.id !== data["source"].id));
+            }
         }
-        if (data["token"] && walletConnected) {
-            getBalance(data.token?.id).then((balance) => setBalance(balance));
+    }, [form.data["source"]]);
+
+    useEffect(() => {
+        const { data } = form;
+        if (data["source"] && data["token"] && data["target"]) {
+            const source = Object.keys(data["source"]).length > 0 ? data["source"] : undefined;
+            const token = Object.keys(data["token"]).length > 0 ? data["token"] : undefined;
+            const target = Object.keys(data["target"]).length > 0 ? data["target"] : undefined;
+            if (source && token && target) {
+                const sourceName = source.tokenmap_name;
+                const targetName = target.tokenmap_name;
+                const sourceId = token_maps.idKeys[sourceName];
+                const token_records = token_maps.tokens?.filter((item) => {
+                    return item[sourceName][sourceId] === token.id;
+                });
+                if (token_records) {
+                    if (targetName === "ergo") {
+                        const ergoItem = token_records[0].ergo;
+                        const ergoToken = {
+                            id: ergoItem.tokenID,
+                            label: ergoItem.tokenName,
+                            icon: "ERG.svg",
+                            min: 1
+                        };
+                        setTargetTokens([ergoToken]);
+                        form.data.targetToken = ergoToken;
+                    } else if (targetName === "cardano") {
+                        const cardanoItem = token_records[0].cardano;
+                        const cardanoToken = {
+                            id: cardanoItem.fingerprint,
+                            label: hex2ascii(cardanoItem.assetID),
+                            policyId: cardanoItem.policyID,
+                            icon: "ADA.svg",
+                            min: 1
+                        };
+                        setTargetTokens([cardanoToken]);
+                        form.data.targetToken = cardanoToken;
+                    }
+                }
+            }
         }
-    }, [form.data, walletConnected]);
+    }, [form.data["target"], form.data["token"]]);
+
+    useEffect(() => {
+        const { data } = form;
+        if (data["token"] && Object.keys(data["token"]).length > 0 && walletConnected) {
+            if (sourceChain === "ERG") {
+                nautilus
+                    .getBalance(data.token?.id)
+                    .then((balance) => setBalance(balance / Math.pow(10, data.token?.decimals)));
+            } else {
+                nami.getBalance(data.token?.id).then((balance) => setBalance(balance));
+            }
+        }
+    }, [form.data["token"], walletConnected]);
 
     async function handle_submit() {
-        const ergSource = form.data["source"].id === "ERG";
         if (!walletConnected) {
-            if (ergSource) {
-                await connectNautilus();
-                updateStatus(setWalletConnected);
+            const result = await connectToWallet(sourceChain, nautilus, nami);
+            if (result === 0) updateStatus();
+            else if (result === 1) {
+                if (sourceChain === "ERG") {
+                    showAlert(
+                        "Install Nautilus",
+                        "Please install Nautilus wallet to continue",
+                        "Install Nautilus"
+                    );
+                } else if (sourceChain === "ADA") {
+                    showAlert(
+                        "Install Nami",
+                        "Please install Nami wallet to continue",
+                        "Install Nami"
+                    );
+                }
+            } else {
+                showAlert("Error", "Please select source chain.", "");
             }
         } else {
-            if (ergSource) {
-                //TODO: Check amount
-                const uTxos = await getUtxos(form.data["amount"], form.data.token.id);
-                const changeAddress = await getChangeAddress();
-                const uTx = await generateTX(
-                    uTxos,
-                    changeAddress,
-                    form.data["target"].id,
-                    form.data["address"],
-                    form.data.token.id,
-                    form.data["amount"]
-                );
-
-                try {
-                    const signedTx = await signTX(uTx);
-                    const result = await submitTx(signedTx);
-                    alert("Done, txid: " + result);
-                } catch (e) {
-                    alert(e.info);
-                    console.error(e);
+            const token = form.data["token"];
+            const target = form.data["target"];
+            const targetToken = form.data["targetToken"];
+            let amount = form.data["amount"];
+            const address = form.data["address"];
+            if (
+                !token ||
+                !target ||
+                !targetToken ||
+                Object.keys(token).length === 0 ||
+                Object.keys(target).length === 0 ||
+                Object.keys(targetToken).length === 0 ||
+                !amount ||
+                !address
+            ) {
+                setDialogTitle("Error");
+                setDialogText("Please fill out the form completely before submitting.");
+                setOpendialog(true);
+                return;
+            }
+            if (amount > balance) {
+                showAlert("Error", "Insufficient token balance.", "");
+                return;
+            }
+            setTransfering(true);
+            try {
+                let txId = "";
+                if (sourceChain === "ERG") {
+                    amount = amount * Math.pow(10, token.decimals);
+                    txId = await transfer(
+                        sourceChain,
+                        nautilus,
+                        amount,
+                        token.id,
+                        target.id,
+                        address
+                    );
+                } else if (sourceChain === "ADA") {
+                    txId = await transfer(
+                        sourceChain,
+                        nami,
+                        amount,
+                        token.policyId,
+                        target.id,
+                        address,
+                        token.label
+                    );
                 }
+                showAlert("Success", "Transaction submitted successfully. TxId: " + txId, "");
+                resetAll();
+            } catch (e) {
+                showAlert("Error", "Failed to submit transaction. " + e.message, "");
+            } finally {
+                setTransfering(false);
             }
         }
     }
@@ -124,6 +276,15 @@ export default function Bridge() {
             subtitle="Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. "
             maxWidth="md"
         >
+            <AlertDialog
+                open={openDialog}
+                onClose={closeDialog}
+                title={dialogTitle}
+                text={dialogText}
+                closeText="Close"
+                proceedText={dialogProceedText}
+                onProceed={proceedDialog}
+            />
             <Card variant="outlined" sx={{ mb: 5, bgcolor: "background.content" }}>
                 <Stack
                     direction={{ xs: "column", md: "row" }}
@@ -135,7 +296,7 @@ export default function Bridge() {
                             <InputSelect
                                 name="source"
                                 label="Source"
-                                options={sourceChains}
+                                options={allChains}
                                 form={form}
                             />
                         </Grid>
@@ -155,7 +316,7 @@ export default function Bridge() {
                             <InputSelect
                                 name="target"
                                 label="Target"
-                                options={sourceChains}
+                                options={targetChains}
                                 disabled={!form.data["source"] || !form.data["token"]}
                                 form={form}
                             />
@@ -164,9 +325,7 @@ export default function Bridge() {
                             <InputSelect
                                 name="targetToken"
                                 label="To Token"
-                                options={
-                                    form.data.target?.id === "ERG" ? ergoTokens : cardanoTokens
-                                }
+                                options={targetTokens}
                                 disabled={!form.data["target"]}
                                 form={form}
                             />
@@ -227,7 +386,8 @@ export default function Bridge() {
                             color="secondary.dark"
                         />
                         <Box>
-                            <Button
+                            <LoadingButton
+                                loading={transfering}
                                 variant="contained"
                                 color="primary"
                                 size="large"
@@ -236,7 +396,7 @@ export default function Bridge() {
                                 sx={{ mt: 2 }}
                             >
                                 {walletConnected ? "Transfer" : "Connect Wallet"}
-                            </Button>
+                            </LoadingButton>
                         </Box>
                     </Stack>
                 </Stack>
