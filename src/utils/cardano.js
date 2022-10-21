@@ -55,12 +55,16 @@ const getProccessedUtxos = async (rawUtxos) => {
 
 export const getAux = async (toAddress, fromAddress) => {
     const adaLib = await adaLoader.load();
+    const shelleyFromAddress = adaLib.Address.from_bech32(fromAddress);
+    const bytes = shelleyFromAddress.to_bytes();
+    const fromAddressBase64 = btoa(String.fromCodePoint(...bytes));
+
     const metadataJson = {
         to: "ergo",
         bridgeFee: consts.bridgeFee,
         networkFee: consts.networkFee,
         toAddress,
-        fromAddress
+        fromAddress: "TEST" //TODO: Chagne this to fromAddressBase64, after finding out the correct format
     };
     const map = adaLib.MetadataMap.new();
     for (const key in metadataJson) {
@@ -82,8 +86,7 @@ export const generateAdaTX = async (
     assetPolicyIdHex,
     assetAmount,
     utxos,
-    toAddress,
-    fromAddress
+    toAddress
 ) => {
     const adaLib = await adaLoader.load();
     const txBuilder = adaLib.TransactionBuilder.new(
@@ -104,6 +107,7 @@ export const generateAdaTX = async (
     );
     const shelleyOutputAddress = adaLib.Address.from_bech32(rosen_config["cardano_bank_address"]);
     const shelleyChangeAddress = adaLib.Address.from_bech32(changeAddress);
+    
 
     let txOutputBuilder = adaLib.TransactionOutputBuilder.new();
     txOutputBuilder = txOutputBuilder.with_address(shelleyOutputAddress);
@@ -132,7 +136,7 @@ export const generateAdaTX = async (
     txBuilder.add_inputs_from(txOutputs, 3);
     txBuilder.add_change_if_needed(shelleyChangeAddress);
 
-    const aux = await getAux(toAddress, fromAddress);
+    const aux = await getAux(toAddress, changeAddress);
     txBuilder.set_auxiliary_data(aux);
     const txBody = txBuilder.build();
     return txBody;

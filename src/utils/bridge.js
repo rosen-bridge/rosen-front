@@ -57,20 +57,18 @@ export const transfer = async (
         }
         const userAddress = await wallet.getChangeAddress();
         const toAddress = address;
-        //TODO: hardcoded address is just for test, we need to change it after metadata format is finalized
         const txBody = await generateAdaTX(
             userAddress,
             ascii2hex(targetLabel),
             tokenId,
             amount,
             utxos,
-            toAddress,
-            String("addr_test1qpjwf0e2wv2lmdaws")
+            toAddress
         );
         try {
             const result = await wallet.signAndSubmitTx(
                 txBody,
-                await getAux(toAddress, String("addr_test1qpjwf0e2wv2lmdaws"))
+                await getAux(toAddress, userAddress)
             );
             return result;
         } catch (e) {
