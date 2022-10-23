@@ -107,7 +107,6 @@ export const generateAdaTX = async (
     );
     const shelleyOutputAddress = adaLib.Address.from_bech32(rosen_config["cardano_bank_address"]);
     const shelleyChangeAddress = adaLib.Address.from_bech32(changeAddress);
-    
 
     let txOutputBuilder = adaLib.TransactionOutputBuilder.new();
     txOutputBuilder = txOutputBuilder.with_address(shelleyOutputAddress);
