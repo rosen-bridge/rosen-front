@@ -107,7 +107,7 @@ export default function Bridge() {
                 token_maps.tokens?.map((item) => {
                     const ergoItem = item.ergo;
                     return {
-                        id: ergoItem.tokenID,
+                        id: ergoItem.tokenId,
                         label: ergoItem.tokenName,
                         icon: "ERG.svg",
                         min: 1,
@@ -120,8 +120,8 @@ export default function Bridge() {
                     const cardanoItem = item.cardano;
                     return {
                         id: cardanoItem.fingerprint,
-                        label: hex2ascii(cardanoItem.assetID),
-                        policyId: cardanoItem.policyID,
+                        label: hex2ascii(cardanoItem.assetName),
+                        policyId: cardanoItem.policyId,
                         icon: "ADA.svg",
                         min: 1
                     };
@@ -153,7 +153,7 @@ export default function Bridge() {
                     if (targetName === "ergo") {
                         const ergoItem = token_records[0].ergo;
                         const ergoToken = {
-                            id: ergoItem.tokenID,
+                            id: ergoItem.tokenId,
                             label: ergoItem.tokenName,
                             icon: "ERG.svg",
                             min: 1
@@ -164,8 +164,8 @@ export default function Bridge() {
                         const cardanoItem = token_records[0].cardano;
                         const cardanoToken = {
                             id: cardanoItem.fingerprint,
-                            label: hex2ascii(cardanoItem.assetID),
-                            policyId: cardanoItem.policyID,
+                            label: hex2ascii(cardanoItem.assetName),
+                            policyId: cardanoItem.policyId,
                             icon: "ADA.svg",
                             min: 1
                         };
