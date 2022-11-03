@@ -1,6 +1,7 @@
 import adaLoader from "../utils/cardanoLoader";
 import { consts } from "../configs";
 import rosen_config from "../configs/rosen.json";
+import { blake2b } from 'blakejs';
 
 const getProccessedUtxos = async (rawUtxos) => {
     const adaLib = await adaLoader.load();
@@ -55,16 +56,14 @@ const getProccessedUtxos = async (rawUtxos) => {
 
 export const getAux = async (toAddress, fromAddress) => {
     const adaLib = await adaLoader.load();
-    const shelleyFromAddress = adaLib.Address.from_bech32(fromAddress);
-    const bytes = shelleyFromAddress.to_bytes();
-    const fromAddressBase64 = btoa(String.fromCodePoint(...bytes));
+    const fromAddressHash = Buffer.from(blake2b(fromAddress, undefined, 32)).toString("hex");
 
     const metadataJson = {
         to: "ergo",
         bridgeFee: consts.bridgeFee,
         networkFee: consts.networkFee,
         toAddress,
-        fromAddress: "TEST" //TODO: Chagne this to fromAddressBase64, after finding out the correct format
+        fromAddressHash
     };
     const map = adaLib.MetadataMap.new();
     for (const key in metadataJson) {
