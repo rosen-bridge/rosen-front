@@ -111,7 +111,7 @@ export default function Bridge() {
                         label: ergoItem.tokenName,
                         icon: "ERG.svg",
                         min: 1,
-                        decimals: ergoItem.decimals
+                        decimals: ergoItem.decimals || 0
                     };
                 })
             );
