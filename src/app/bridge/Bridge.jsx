@@ -48,6 +48,8 @@ export default function Bridge() {
     const [dialogTitle, setDialogTitle] = useState("");
     const [dialogText, setDialogText] = useState("");
     const [dialogProceedText, setDialogProceedText] = useState("");
+    const [bridgeFee, setBridgeFee] = useState(0);
+    const [networkFee, setNetworkFee] = useState(0);
 
     const closeDialog = () => {
         setDialogTitle("");
@@ -370,18 +372,18 @@ export default function Bridge() {
                         />
                         <ValueDisplay
                             title="Bridge Fee"
-                            value={0.005 * form.data["amount"] || 0}
+                            value={bridgeFee}
                             unit={form.data.token?.label || "ERG"}
                         />
                         <ValueDisplay
-                            title="Transaction Fee"
-                            value={0.01 * form.data["amount"] || 0}
+                            title="Network Fee"
+                            value={networkFee}
                             unit={form.data.token?.label || "ERG"}
                         />
                         <Divider />
                         <ValueDisplay
                             title="You will receive"
-                            value={0.985 * form.data["amount"] || 0}
+                            value={form.data["amount"] - (bridgeFee + networkFee) || 0}
                             unit={form.data.targetToken?.label || "ERG"}
                             color="secondary.dark"
                         />

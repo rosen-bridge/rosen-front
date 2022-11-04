@@ -2,5 +2,8 @@
     "tokenmap": {
         "github_repo": "rosen-bridge/contract",
         "network": "mainnet-alpha-1"
+    },
+    "explorer": {
+        "api_url": "https://api.ergoplatform.com/api/v1"
     }
 }
