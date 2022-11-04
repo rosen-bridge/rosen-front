@@ -27,6 +27,8 @@ export const transfer = async (
     tokenId,
     targetId,
     address,
+    networkFee,
+    bridgeFee,
     targetLabel = ""
 ) => {
     if (sourceChain === "ERG") {
@@ -39,8 +41,8 @@ export const transfer = async (
         }
         const changeAddress = await wallet.getChangeAddress();
         let targetChain = "unknown";
-        if(targetId === "ADA") targetChain = "cardano";
-        const uTx = await generateTX(uTxos, changeAddress, targetChain, address, tokenId, amount);
+        if (targetId === "ADA") targetChain = "cardano";
+        const uTx = await generateTX(uTxos, changeAddress, targetChain, address, tokenId, amount, networkFee, bridgeFee);
         try {
             const signedTx = await wallet.signTX(uTx);
             const result = await wallet.submitTx(signedTx);
@@ -65,7 +67,9 @@ export const transfer = async (
             tokenId,
             amount,
             utxos,
-            toAddress
+            toAddress,
+            networkFee,
+            bridgeFee
         );
         try {
             const result = await wallet.signAndSubmitTx(

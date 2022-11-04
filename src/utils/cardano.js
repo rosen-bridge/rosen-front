@@ -54,14 +54,14 @@ const getProccessedUtxos = async (rawUtxos) => {
     }
 };
 
-export const getAux = async (toAddress, fromAddress) => {
+export const getAux = async (toAddress, fromAddress, networkFee, bridgeFee) => {
     const adaLib = await adaLoader.load();
     const fromAddressHash = Buffer.from(blake2b(fromAddress, undefined, 32)).toString("hex");
 
     const metadataJson = {
         to: "ergo",
-        bridgeFee: consts.bridgeFee,
-        networkFee: consts.networkFee,
+        bridgeFee,
+        networkFee,
         toAddress,
         fromAddressHash
     };
@@ -85,7 +85,9 @@ export const generateAdaTX = async (
     assetPolicyIdHex,
     assetAmount,
     utxos,
-    toAddress
+    toAddress,
+    networkFee,
+    bridgeFee
 ) => {
     const adaLib = await adaLoader.load();
     const txBuilder = adaLib.TransactionBuilder.new(
@@ -134,7 +136,7 @@ export const generateAdaTX = async (
     txBuilder.add_inputs_from(txOutputs, 3);
     txBuilder.add_change_if_needed(shelleyChangeAddress);
 
-    const aux = await getAux(toAddress, changeAddress);
+    const aux = await getAux(toAddress, changeAddress, networkFee, bridgeFee);
     txBuilder.set_auxiliary_data(aux);
     const txBody = txBuilder.build();
     return txBody;

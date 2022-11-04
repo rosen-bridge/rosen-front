@@ -46,10 +46,8 @@ const getChangeBox = async (inputs, changeAddress, tokenId, tokenAmount) => {
     return changeBox.build();
 };
 
-const getRosenBox = async (rosenValue, tokenId, amount, toChain, toAddress, fromAddress) => {
+const getRosenBox = async (rosenValue, tokenId, amount, toChain, toAddress, fromAddress, networkFee, bridgeFee) => {
     const wasm = await ergolib;
-    const networkFee = consts.networkFee;
-    const bridgeFee = consts.bridgeFee;
 
     const rosenBox = new wasm.ErgoBoxCandidateBuilder(
         rosenValue,
@@ -84,7 +82,7 @@ const proxyTx = async (uTx, inputs) => {
     return unsignedErgoTxToProxy(serial);
 };
 
-export const generateTX = async (inputs, changeAddress, toChain, toAddress, tokenId, amount) => {
+export const generateTX = async (inputs, changeAddress, toChain, toAddress, tokenId, amount, networkFee, bridgeFee) => {
     const wasm = await ergolib;
     const rosenValue = wasm.BoxValue.from_i64(wasm.I64.from_str(minBoxValue));
     const rosenBox = await getRosenBox(
@@ -93,7 +91,9 @@ export const generateTX = async (inputs, changeAddress, toChain, toAddress, toke
         amount,
         toChain,
         toAddress,
-        changeAddress
+        changeAddress,
+        networkFee,
+        bridgeFee
     );
     const changeBox = await getChangeBox(inputs, changeAddress, tokenId, amount);
     const feeBox = wasm.ErgoBoxCandidate.new_miner_fee_box(

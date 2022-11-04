@@ -12,9 +12,17 @@ import { Nautilus, Nami } from "../../wallets";
 import token_maps from "../../configs/tokenmap.json";
 import { hex2ascii, connectToWallet, transfer } from "../../utils";
 import { consts } from "configs";
+import { BridgeMinimumFee } from "@rosen-bridge/minimum-fee";
+import { default as explorer } from "../../explorer";
 
+const explorerConfig = require("../../configs/remote.json");
 const nautilus = new Nautilus();
 const nami = new Nami();
+const minFee = new BridgeMinimumFee(
+    explorerConfig.explorer.base_url,
+    consts.feeConfigErgoTreeTemplateHash,
+    consts.RSNA
+);
 
 export function ValueDisplay({ title, value, unit, color = "primary" }) {
     return (
@@ -102,11 +110,15 @@ export default function Bridge() {
         setBalance(0);
     };
 
+    const mapTokenMap = (cb) => {
+        return token_maps.tokens?.map(cb);
+    };
+
     useEffect(() => {
         const { data } = form;
         if (!data["source"]) {
             setErgoTokens(
-                token_maps.tokens?.map((item) => {
+                mapTokenMap((item) => {
                     const ergoItem = item.ergo;
                     return {
                         id: ergoItem.tokenId,
@@ -118,7 +130,7 @@ export default function Bridge() {
                 })
             );
             setCardanoTokens(
-                token_maps.tokens?.map((item) => {
+                mapTokenMap((item) => {
                     const cardanoItem = item.cardano;
                     return {
                         id: cardanoItem.fingerprint,
@@ -192,6 +204,30 @@ export default function Bridge() {
         }
     }, [form.data["token"], walletConnected]);
 
+    useEffect(() => {
+        async function caclucateFees(tokenId, chain, amount) {
+            const height = await explorer.getHeight();
+            const fees = await minFee.getFee(tokenId, chain, height);
+            const nextFees = await minFee.getFee(tokenId, chain, height + 5);
+            if(fees.bridgeFee !== nextFees.bridgeFee || fees.networkFee !== nextFees.networkFee) {
+                showAlert("Warning", "Fees might change after the transaction", "");
+            }
+            setNetworkFee(Number(fees.networkFee.toString()));
+            setBridgeFee(Math.max(
+                Number(fees.bridgeFee.toString()),
+                amount * consts.feeRatio
+            ));
+        }
+        if (form.data.amount && form.data.token && Object.keys(form.data.token).length > 0) {
+            const chain = form.data.source.id === "ERG" ? "ergo" : "cardano";
+            const mappedTokens = mapTokenMap(item => {
+                if(item.cardano.fingerprint === form.data.token.id) return item.ergo
+            });
+            const tokenId = form.data.source.id === "ERG" ? form.data.token.id : mappedTokens[0].tokenId;
+            caclucateFees(tokenId, chain, form.data.amount);
+        }
+    }, [form.data["amount"], form.data["token"]]);
+
     async function handle_submit() {
         if (!walletConnected) {
             const result = await connectToWallet(sourceChain, nautilus, nami);
@@ -234,6 +270,10 @@ export default function Bridge() {
                 setOpendialog(true);
                 return;
             }
+            if (form.data["amount"] - (bridgeFee + networkFee) <= 0) {
+                showAlert("Error", "Amount is too small to transfer.", "");
+                return;
+            }
             if (amount > balance) {
                 showAlert("Error", "Insufficient token balance.", "");
                 return;
@@ -249,7 +289,9 @@ export default function Bridge() {
                         amount,
                         token.id,
                         target.id,
-                        address
+                        address,
+                        networkFee,
+                        bridgeFee
                     );
                 } else if (sourceChain === "ADA") {
                     txId = await transfer(
@@ -259,6 +301,8 @@ export default function Bridge() {
                         token.policyId,
                         target.id,
                         address,
+                        networkFee,
+                        bridgeFee,
                         token.label
                     );
                 }

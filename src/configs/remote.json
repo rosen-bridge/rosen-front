@@ -4,6 +4,6 @@
         "network": "mainnet-alpha-1"
     },
     "explorer": {
-        "api_url": "https://api.ergoplatform.com/api/v1"
+        "base_url": "https://api.ergoplatform.com/api"
     }
 }
