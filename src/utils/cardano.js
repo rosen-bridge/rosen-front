@@ -1,7 +1,7 @@
 import adaLoader from "../utils/cardanoLoader";
 import { consts } from "../configs";
 import rosen_config from "../configs/rosen.json";
-import { blake2b } from 'blakejs';
+import { blake2b } from "blakejs";
 
 const getProccessedUtxos = async (rawUtxos) => {
     const adaLib = await adaLoader.load();
