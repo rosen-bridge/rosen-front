@@ -128,6 +128,7 @@ export default function Bridge() {
             bridgeFee: 0,
             networkFee: 0
         });
+        setFeeToken("");
     };
 
     const mapTokenMap = (cb) => {
@@ -230,14 +231,18 @@ export default function Bridge() {
     }, [form.data["token"], walletConnected]);
 
     useEffect(() => {
-        async function caclucateFees(tokenId, chain, amount) {
+        async function caclucateFees(tokenId, chain) {
             const height =
                 chain === "ergo"
                     ? await ergoExplorer.getHeight()
                     : await cardanoExplorer.getHeight();
             const minFeeIndex = chain === "ergo" ? 0 : 1;
             const fees = await minFee[minFeeIndex].getFee(tokenId, chain, height);
-            const nextFees = await minFee[minFeeIndex].getFee(tokenId, chain, height + 5);
+            const nextFees = await minFee[minFeeIndex].getFee(
+                tokenId,
+                chain,
+                height + consts.nextfeeHeight
+            );
             if (fees.bridgeFee !== nextFees.bridgeFee || fees.networkFee !== nextFees.networkFee) {
                 showAlert("Warning", "Fees might change after the transaction", "");
             }
@@ -246,22 +251,24 @@ export default function Bridge() {
                 bridgeFee: Number(fees.bridgeFee.toString())
             };
             setMinFees(localMinFees);
-            updateFees(amount, localMinFees);
+            setFeeToken(form.data.token.id);
+            updateFees(0, localMinFees);
         }
-        if (form.data.amount && form.data.token && Object.keys(form.data.token).length > 0) {
-            if (form.data.token.id === feeToken) {
-                updateFees(form.data.amount, minFees);
+        if (form.data.token && Object.keys(form.data.token).length > 0) {
+            if (form.data.token.id !== feeToken) {
+                const chain = form.data.source.id === "ERG" ? "ergo" : "cardano";
+                const mappedTokens = mapTokenMap((item) => {
+                    if (item.cardano.fingerprint === form.data.token.id) return item.ergo;
+                });
+                const tokenId =
+                    form.data.source.id === "ERG" ? form.data.token.id : mappedTokens[0].tokenId;
+
+                caclucateFees(tokenId, chain);
                 return;
             }
-            const chain = form.data.source.id === "ERG" ? "ergo" : "cardano";
-            const mappedTokens = mapTokenMap((item) => {
-                if (item.cardano.fingerprint === form.data.token.id) return item.ergo;
-            });
-            const tokenId =
-                form.data.source.id === "ERG" ? form.data.token.id : mappedTokens[0].tokenId;
-
-            setFeeToken(form.data.token.id);
-            caclucateFees(tokenId, chain, form.data.amount);
+        }
+        if (form.data.amount && form.data?.token?.id === feeToken) {
+            updateFees(form.data.amount, minFees);
         }
     }, [form.data["amount"], form.data["token"]]);
 
@@ -355,8 +362,8 @@ export default function Bridge() {
 
     return (
         <PageBox
-            title="Bridge"
-            subtitle="Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. "
+            title="Rosen Bridge - soft launch"
+            subtitle="Testing Rosen Bridge on Ergo and Cardano main-nets using test tokens"
             maxWidth="md"
         >
             <AlertDialog
@@ -417,16 +424,19 @@ export default function Bridge() {
                             <InputText
                                 type="number"
                                 name="amount"
-                                label="Amount"
+                                label={
+                                    feeToken === "" && !form.data.token?.id
+                                        ? ""
+                                        : feeToken === ""
+                                        ? "Calculating Fees"
+                                        : "Amount"
+                                }
                                 placeholder="0.00"
                                 helperText={
-                                    form.data["token"] &&
-                                    `Minimum ${form.data["token"]?.min} ${form.data["token"]?.id} `
+                                    form.data.token?.id &&
+                                    `Minimum ${form.data.token?.min} ${form.data.token?.label} `
                                 }
-                                error={
-                                    form.data["token"] &&
-                                    form.data["token"].min > form.data["amount"]
-                                }
+                                disabled={feeToken === ""}
                                 form={form}
                                 sx={{ input: { fontSize: "2rem" } }}
                             />
@@ -449,23 +459,23 @@ export default function Bridge() {
                         <ValueDisplay
                             title="Wallet Balance"
                             value={balance}
-                            unit={form.data.token?.label || "ERG"}
+                            unit={form.data.token?.label || ""}
                         />
                         <ValueDisplay
                             title="Bridge Fee"
                             value={bridgeFee}
-                            unit={form.data.token?.label || "ERG"}
+                            unit={form.data.token?.label || ""}
                         />
                         <ValueDisplay
                             title="Network Fee"
                             value={networkFee}
-                            unit={form.data.token?.label || "ERG"}
+                            unit={form.data.token?.label || ""}
                         />
                         <Divider />
                         <ValueDisplay
                             title="You will receive"
                             value={form.data["amount"] - (bridgeFee + networkFee) || 0}
-                            unit={form.data.targetToken?.label || "ERG"}
+                            unit={form.data.targetToken?.label || ""}
                             color="secondary.dark"
                         />
                         <Box>

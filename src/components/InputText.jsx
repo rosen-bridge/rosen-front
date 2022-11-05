@@ -61,6 +61,7 @@ export default function InputText({
                     required,
                     ...numberProps
                 }}
+                disabled={disabled}
                 InputProps={{
                     ...(type === "number" && { inputComponent: NumberFormatCustom }),
                     ...(startAdornment && {
