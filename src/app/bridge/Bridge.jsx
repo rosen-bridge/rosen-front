@@ -12,7 +12,7 @@ import { Nautilus, Nami } from "../../wallets";
 import token_maps from "../../configs/tokenmap.json";
 import { hex2ascii, connectToWallet, transfer } from "../../utils";
 import { consts } from "configs";
-import { BridgeMinimumFee } from "@rosen-bridge/minimum-fee";
+import { BridgeMinimumFee } from "@rosen-bridge/minimum-fee-browser";
 import { default as ergoExplorer } from "../../explorer/ergo";
 import { default as cardanoExplorer } from "../../explorer/cardano";
 
@@ -109,6 +109,8 @@ export default function Bridge() {
         setTargetTokens([]);
         setWalletConnected(false);
         setBalance(0);
+        setBridgeFee(0);
+        setNetworkFee(0);
     };
 
     const mapTokenMap = (cb) => {
