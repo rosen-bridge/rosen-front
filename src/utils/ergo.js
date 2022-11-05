@@ -1,13 +1,13 @@
 import rosen_config from "../configs/rosen.json";
 import { consts } from "../configs";
 import { string2uint8, unsignedErgoTxToProxy } from "../utils";
+import { default as ergoExplorer } from "../explorer/ergo";
 
 let ergolib = import("ergo-lib-wasm-browser");
-const height = 0;
 const minBoxValue = consts.minBoxValue;
 const feeString = consts.ergoFee;
 
-const getChangeBox = async (inputs, changeAddress, tokenId, tokenAmount) => {
+const getChangeBox = async (height, inputs, changeAddress, tokenId, tokenAmount) => {
     const wasm = await ergolib;
     let sumValue = wasm.I64.from_str("0");
     const tokenMap = new Map();
@@ -47,6 +47,7 @@ const getChangeBox = async (inputs, changeAddress, tokenId, tokenAmount) => {
 };
 
 const getRosenBox = async (
+    height,
     rosenValue,
     tokenId,
     amount,
@@ -102,8 +103,10 @@ export const generateTX = async (
     bridgeFee
 ) => {
     const wasm = await ergolib;
+    const height = await ergoExplorer.getHeight();
     const rosenValue = wasm.BoxValue.from_i64(wasm.I64.from_str(minBoxValue));
     const rosenBox = await getRosenBox(
+        height,
         rosenValue,
         tokenId,
         amount,
@@ -113,7 +116,7 @@ export const generateTX = async (
         networkFee,
         bridgeFee
     );
-    const changeBox = await getChangeBox(inputs, changeAddress, tokenId, amount);
+    const changeBox = await getChangeBox(height, inputs, changeAddress, tokenId, amount);
     const feeBox = wasm.ErgoBoxCandidate.new_miner_fee_box(
         wasm.BoxValue.from_i64(wasm.I64.from_str(feeString)),
         height
