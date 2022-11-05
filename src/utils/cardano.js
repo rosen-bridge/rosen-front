@@ -60,8 +60,8 @@ export const getAux = async (toAddress, fromAddress, networkFee, bridgeFee) => {
 
     const metadataJson = {
         to: "ergo",
-        bridgeFee,
-        networkFee,
+        bridgeFee: bridgeFee.toString(),
+        networkFee: networkFee.toString(),
         toAddress,
         fromAddressHash
     };

@@ -83,7 +83,7 @@ export const transfer = async (
         try {
             const result = await wallet.signAndSubmitTx(
                 txBody,
-                await getAux(toAddress, userAddress)
+                await getAux(toAddress, userAddress, networkFee, bridgeFee)
             );
             return result;
         } catch (e) {
