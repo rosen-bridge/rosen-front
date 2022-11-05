@@ -10,6 +10,8 @@ import useMediaQuery from "@mui/material/useMediaQuery";
 import { useTheme } from "@mui/material/styles";
 import { Nautilus, Nami } from "../../wallets";
 import token_maps from "../../configs/tokenmap.json";
+import ergoContract from "../../configs/contract-ergo.json";
+import cardanoConract from "../../configs/contract-cardano.json";
 import { hex2ascii, connectToWallet, transfer } from "../../utils";
 import { consts } from "configs";
 import { BridgeMinimumFee } from "@rosen-bridge/minimum-fee-browser";
@@ -19,11 +21,17 @@ import { default as cardanoExplorer } from "../../explorer/cardano";
 const explorerConfig = require("../../configs/remote.json");
 const nautilus = new Nautilus();
 const nami = new Nami();
-const minFee = new BridgeMinimumFee(
+const ergoMinfee = new BridgeMinimumFee(
     explorerConfig.ergo_explorer.base_url,
     consts.feeConfigErgoTreeTemplateHash,
-    consts.RSNA
+    ergoContract.tokens.RSNRatioNFT
 );
+const cardanoMinfee = new BridgeMinimumFee(
+    explorerConfig.ergo_explorer.base_url,
+    consts.feeConfigErgoTreeTemplateHash,
+    cardanoConract.tokens.RSNRatioNFT
+);
+const minFee = [ergoMinfee, cardanoMinfee];
 
 export function ValueDisplay({ title, value, unit, color = "primary" }) {
     return (
@@ -59,6 +67,11 @@ export default function Bridge() {
     const [dialogProceedText, setDialogProceedText] = useState("");
     const [bridgeFee, setBridgeFee] = useState(0);
     const [networkFee, setNetworkFee] = useState(0);
+    const [minFees, setMinFees] = useState({
+        bridgeFee: 0,
+        networkFee: 0
+    });
+    const [feeToken, setFeeToken] = useState("");
 
     const closeDialog = () => {
         setDialogTitle("");
@@ -111,10 +124,19 @@ export default function Bridge() {
         setBalance(0);
         setBridgeFee(0);
         setNetworkFee(0);
+        setMinFees({
+            bridgeFee: 0,
+            networkFee: 0
+        });
     };
 
     const mapTokenMap = (cb) => {
         return token_maps.tokens?.map(cb);
+    };
+
+    const updateFees = (amount, fees) => {
+        setNetworkFee(fees.networkFee);
+        setBridgeFee(Math.max(fees.bridgeFee, Math.ceil(amount * consts.feeRatio)));
     };
 
     useEffect(() => {
@@ -213,21 +235,32 @@ export default function Bridge() {
                 chain === "ergo"
                     ? await ergoExplorer.getHeight()
                     : await cardanoExplorer.getHeight();
-            const fees = await minFee.getFee(tokenId, chain, height);
-            const nextFees = await minFee.getFee(tokenId, chain, height + 5);
+            const minFeeIndex = chain === "ergo" ? 0 : 1;
+            const fees = await minFee[minFeeIndex].getFee(tokenId, chain, height);
+            const nextFees = await minFee[minFeeIndex].getFee(tokenId, chain, height + 5);
             if (fees.bridgeFee !== nextFees.bridgeFee || fees.networkFee !== nextFees.networkFee) {
                 showAlert("Warning", "Fees might change after the transaction", "");
             }
-            setNetworkFee(Number(fees.networkFee.toString()));
-            setBridgeFee(Math.max(Number(fees.bridgeFee.toString()), amount * consts.feeRatio));
+            const localMinFees = {
+                networkFee: Number(fees.networkFee.toString()),
+                bridgeFee: Number(fees.bridgeFee.toString())
+            };
+            setMinFees(localMinFees);
+            updateFees(amount, localMinFees);
         }
         if (form.data.amount && form.data.token && Object.keys(form.data.token).length > 0) {
+            if (form.data.token.id === feeToken) {
+                updateFees(form.data.amount, minFees);
+                return;
+            }
             const chain = form.data.source.id === "ERG" ? "ergo" : "cardano";
             const mappedTokens = mapTokenMap((item) => {
                 if (item.cardano.fingerprint === form.data.token.id) return item.ergo;
             });
             const tokenId =
                 form.data.source.id === "ERG" ? form.data.token.id : mappedTokens[0].tokenId;
+
+            setFeeToken(form.data.token.id);
             caclucateFees(tokenId, chain, form.data.amount);
         }
     }, [form.data["amount"], form.data["token"]]);

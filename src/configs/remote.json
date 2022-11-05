@@ -1,7 +1,7 @@
 {
-    "tokenmap": {
+    "contratcs": {
         "github_repo": "rosen-bridge/contract",
-        "network": "mainnet-alpha-1"
+        "network_type": "mainnet-alpha-1"
     },
     "ergo_explorer": {
         "base_url": "https://api.ergoplatform.com/api"
