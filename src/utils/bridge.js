@@ -42,7 +42,16 @@ export const transfer = async (
         const changeAddress = await wallet.getChangeAddress();
         let targetChain = "unknown";
         if (targetId === "ADA") targetChain = "cardano";
-        const uTx = await generateTX(uTxos, changeAddress, targetChain, address, tokenId, amount, networkFee, bridgeFee);
+        const uTx = await generateTX(
+            uTxos,
+            changeAddress,
+            targetChain,
+            address,
+            tokenId,
+            amount,
+            networkFee,
+            bridgeFee
+        );
         try {
             const signedTx = await wallet.signTX(uTx);
             const result = await wallet.submitTx(signedTx);

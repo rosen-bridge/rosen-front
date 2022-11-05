@@ -20,4 +20,4 @@ class Explorer {
     }
 }
 
-export default new Explorer(explorerConfig.explorer.base_url + "/v1");
+export default new Explorer(explorerConfig.ergo_explorer.base_url + "/v1");

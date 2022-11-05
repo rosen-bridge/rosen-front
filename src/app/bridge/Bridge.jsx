@@ -13,13 +13,14 @@ import token_maps from "../../configs/tokenmap.json";
 import { hex2ascii, connectToWallet, transfer } from "../../utils";
 import { consts } from "configs";
 import { BridgeMinimumFee } from "@rosen-bridge/minimum-fee";
-import { default as explorer } from "../../explorer";
+import { default as ergoExplorer } from "../../explorer/ergo";
+import { default as cardanoExplorer } from "../../explorer/cardano";
 
 const explorerConfig = require("../../configs/remote.json");
 const nautilus = new Nautilus();
 const nami = new Nami();
 const minFee = new BridgeMinimumFee(
-    explorerConfig.explorer.base_url,
+    explorerConfig.ergo_explorer.base_url,
     consts.feeConfigErgoTreeTemplateHash,
     consts.RSNA
 );
@@ -206,24 +207,25 @@ export default function Bridge() {
 
     useEffect(() => {
         async function caclucateFees(tokenId, chain, amount) {
-            const height = await explorer.getHeight();
+            const height =
+                chain === "ergo"
+                    ? await ergoExplorer.getHeight()
+                    : await cardanoExplorer.getHeight();
             const fees = await minFee.getFee(tokenId, chain, height);
             const nextFees = await minFee.getFee(tokenId, chain, height + 5);
-            if(fees.bridgeFee !== nextFees.bridgeFee || fees.networkFee !== nextFees.networkFee) {
+            if (fees.bridgeFee !== nextFees.bridgeFee || fees.networkFee !== nextFees.networkFee) {
                 showAlert("Warning", "Fees might change after the transaction", "");
             }
             setNetworkFee(Number(fees.networkFee.toString()));
-            setBridgeFee(Math.max(
-                Number(fees.bridgeFee.toString()),
-                amount * consts.feeRatio
-            ));
+            setBridgeFee(Math.max(Number(fees.bridgeFee.toString()), amount * consts.feeRatio));
         }
         if (form.data.amount && form.data.token && Object.keys(form.data.token).length > 0) {
             const chain = form.data.source.id === "ERG" ? "ergo" : "cardano";
-            const mappedTokens = mapTokenMap(item => {
-                if(item.cardano.fingerprint === form.data.token.id) return item.ergo
+            const mappedTokens = mapTokenMap((item) => {
+                if (item.cardano.fingerprint === form.data.token.id) return item.ergo;
             });
-            const tokenId = form.data.source.id === "ERG" ? form.data.token.id : mappedTokens[0].tokenId;
+            const tokenId =
+                form.data.source.id === "ERG" ? form.data.token.id : mappedTokens[0].tokenId;
             caclucateFees(tokenId, chain, form.data.amount);
         }
     }, [form.data["amount"], form.data["token"]]);

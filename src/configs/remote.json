@@ -3,7 +3,10 @@
         "github_repo": "rosen-bridge/contract",
         "network": "mainnet-alpha-1"
     },
-    "explorer": {
+    "ergo_explorer": {
         "base_url": "https://api.ergoplatform.com/api"
+    },
+    "cardano_explorer": {
+        "base_url": "https://api.koios.rest/api"
     }
 }
