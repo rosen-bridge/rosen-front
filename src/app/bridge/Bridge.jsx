@@ -102,7 +102,7 @@ export default function Bridge() {
         if (sourceChain === "ERG") {
             const connected = await nautilus.isConnected();
             setWalletConnected(connected);
-        } else {
+        } else if (sourceChain === "ADA") {
             const connected = await nami.isConnected();
             setWalletConnected(connected);
         }
@@ -172,6 +172,9 @@ export default function Bridge() {
                 resetAll();
                 setSourceChain(data["source"].id);
                 setTargetChains(allChains.filter((item) => item.id !== data["source"].id));
+                connectToWallet(data["source"].id, nautilus, nami).then(result => {
+                    if (result === 0) setWalletConnected(true);
+                });
             }
         }
     }, [form.data["source"]]);
