@@ -478,7 +478,7 @@ export default function Bridge() {
                         <Divider />
                         <ValueDisplay
                             title="You will receive"
-                            value={form.data["amount"] - (bridgeFee + networkFee) || 0}
+                            value={(form.data["amount"] - (bridgeFee + networkFee) || 0) >= 0 ? (form.data["amount"] - (bridgeFee + networkFee) || 0) : "Amount is too low"}
                             unit={form.data.targetToken?.label || ""}
                             color="secondary.dark"
                         />
