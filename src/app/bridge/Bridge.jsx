@@ -327,6 +327,10 @@ export default function Bridge() {
                 setOpendialog(true);
                 return;
             }
+            if(!Number.isInteger(form.data["amount"])) {
+                showAlert("Error", "Only integer amounts are valid.", "");
+                return;
+            }
             if (form.data["amount"] - (bridgeFee + networkFee) <= 0) {
                 showAlert("Error", "The transfer is not possible since the amount is too low.", "");
                 return;
