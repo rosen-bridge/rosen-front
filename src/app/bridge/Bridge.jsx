@@ -489,12 +489,12 @@ export default function Bridge() {
                         />
                         <ValueDisplay
                             title="Bridge Fee"
-                            value={bridgeFee}
+                            value={bridgeFee > 0 ? bridgeFee : "Pending"}
                             unit={form.data.token?.label || ""}
                         />
                         <ValueDisplay
                             title="Network Fee"
-                            value={networkFee}
+                            value={networkFee > 0 ? networkFee : "Pending"}
                             unit={form.data.token?.label || ""}
                         />
                         <Divider />
