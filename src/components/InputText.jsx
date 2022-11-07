@@ -47,6 +47,7 @@ export default function InputText({
     return (
         <Box {...restProps}>
             <TextField
+                autoComplete='off'
                 label={label}
                 value={value}
                 onChange={handle_change}
