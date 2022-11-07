@@ -1,8 +1,12 @@
 {
-    "tokenmap": {
-        "github_repo": "SepehrGanji/tokenmap-test"
+    "contratcs": {
+        "github_repo": "rosen-bridge/contract",
+        "network_type": "mainnet-alpha-1"
     },
-    "bank": {
-        "github_repo": "SepehrGanji/tokenmap-test"
+    "ergo_explorer": {
+        "base_url": "https://api.ergoplatform.com/api"
+    },
+    "cardano_explorer": {
+        "base_url": "https://api.koios.rest/api"
     }
 }

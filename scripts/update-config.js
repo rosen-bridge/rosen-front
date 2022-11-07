@@ -37,8 +37,9 @@ module.exports = function (config) {
     config.resolve.fallback = {
         "crypto": "crypto-browserify",
         "stream": "stream-browserify",
-        "path": "path-browserify",
         "fs": false,
+        "path": require.resolve("path-browserify"),
+        "util": require.resolve("util/"),
     }
     return config
 }

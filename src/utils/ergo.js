@@ -1,13 +1,13 @@
-import rosen_config from "../configs/rosen.json";
+import ergoContract from "../configs/contract-ergo.json";
 import { consts } from "../configs";
 import { string2uint8, unsignedErgoTxToProxy } from "../utils";
+import { default as ergoExplorer } from "../explorer/ergo";
 
 let ergolib = import("ergo-lib-wasm-browser");
-const height = 0;
 const minBoxValue = consts.minBoxValue;
 const feeString = consts.ergoFee;
 
-const getChangeBox = async (inputs, changeAddress, tokenId, tokenAmount) => {
+const getChangeBox = async (height, inputs, changeAddress, tokenId, tokenAmount) => {
     const wasm = await ergolib;
     let sumValue = wasm.I64.from_str("0");
     const tokenMap = new Map();
@@ -46,14 +46,22 @@ const getChangeBox = async (inputs, changeAddress, tokenId, tokenAmount) => {
     return changeBox.build();
 };
 
-const getRosenBox = async (rosenValue, tokenId, amount, toChain, toAddress, fromAddress) => {
+const getRosenBox = async (
+    height,
+    rosenValue,
+    tokenId,
+    amount,
+    toChain,
+    toAddress,
+    fromAddress,
+    networkFee,
+    bridgeFee
+) => {
     const wasm = await ergolib;
-    const networkFee = consts.networkFee;
-    const bridgeFee = consts.bridgeFee;
 
     const rosenBox = new wasm.ErgoBoxCandidateBuilder(
         rosenValue,
-        wasm.Contract.pay_to_address(wasm.Address.from_base58(rosen_config["ergo_bank_address"])),
+        wasm.Contract.pay_to_address(wasm.Address.from_base58(ergoContract["addresses"]["lock"])),
         height
     );
     rosenBox.add_token(
@@ -84,18 +92,31 @@ const proxyTx = async (uTx, inputs) => {
     return unsignedErgoTxToProxy(serial);
 };
 
-export const generateTX = async (inputs, changeAddress, toChain, toAddress, tokenId, amount) => {
+export const generateTX = async (
+    inputs,
+    changeAddress,
+    toChain,
+    toAddress,
+    tokenId,
+    amount,
+    networkFee,
+    bridgeFee
+) => {
     const wasm = await ergolib;
+    const height = await ergoExplorer.getHeight();
     const rosenValue = wasm.BoxValue.from_i64(wasm.I64.from_str(minBoxValue));
     const rosenBox = await getRosenBox(
+        height,
         rosenValue,
         tokenId,
         amount,
         toChain,
         toAddress,
-        changeAddress
+        changeAddress,
+        networkFee,
+        bridgeFee
     );
-    const changeBox = await getChangeBox(inputs, changeAddress, tokenId, amount);
+    const changeBox = await getChangeBox(height, inputs, changeAddress, tokenId, amount);
     const feeBox = wasm.ErgoBoxCandidate.new_miner_fee_box(
         wasm.BoxValue.from_i64(wasm.I64.from_str(feeString)),
         height
