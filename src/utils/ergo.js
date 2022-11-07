@@ -1,4 +1,4 @@
-import rosen_config from "../configs/rosen.json";
+import ergoContract from "../configs/contract-ergo.json";
 import { consts } from "../configs";
 import { string2uint8, unsignedErgoTxToProxy } from "../utils";
 import { default as ergoExplorer } from "../explorer/ergo";
@@ -61,7 +61,7 @@ const getRosenBox = async (
 
     const rosenBox = new wasm.ErgoBoxCandidateBuilder(
         rosenValue,
-        wasm.Contract.pay_to_address(wasm.Address.from_base58(rosen_config["ergo_bank_address"])),
+        wasm.Contract.pay_to_address(wasm.Address.from_base58(ergoContract["addresses"]["lock"])),
         height
     );
     rosenBox.add_token(

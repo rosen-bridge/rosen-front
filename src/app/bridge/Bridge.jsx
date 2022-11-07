@@ -67,7 +67,7 @@ export default function Bridge() {
     const [dialogProceedText, setDialogProceedText] = useState("");
     const [bridgeFee, setBridgeFee] = useState(0);
     const [networkFee, setNetworkFee] = useState(0);
-    const [minFees, setMinFees] = useState({
+    const [fetchedFees, setFetchedFees] = useState({
         bridgeFee: 0,
         networkFee: 0
     });
@@ -124,7 +124,7 @@ export default function Bridge() {
         setBalance(0);
         setBridgeFee(0);
         setNetworkFee(0);
-        setMinFees({
+        setFetchedFees({
             bridgeFee: 0,
             networkFee: 0
         });
@@ -244,13 +244,17 @@ export default function Bridge() {
                 height + consts.nextfeeHeight
             );
             if (fees.bridgeFee !== nextFees.bridgeFee || fees.networkFee !== nextFees.networkFee) {
-                showAlert("Warning", "Fees might change after the transaction", "");
+                showAlert(
+                    "Warning",
+                    "Fees might change depending on the height of mining the transactions.",
+                    ""
+                );
             }
             const localMinFees = {
                 networkFee: Number(fees.networkFee.toString()),
                 bridgeFee: Number(fees.bridgeFee.toString())
             };
-            setMinFees(localMinFees);
+            setFetchedFees(localMinFees);
             setFeeToken(form.data.token.id);
             updateFees(0, localMinFees);
         }
@@ -268,7 +272,7 @@ export default function Bridge() {
             }
         }
         if (form.data.amount && form.data?.token?.id === feeToken) {
-            updateFees(form.data.amount, minFees);
+            updateFees(form.data.amount, fetchedFees);
         }
     }, [form.data["amount"], form.data["token"]]);
 
@@ -315,7 +319,7 @@ export default function Bridge() {
                 return;
             }
             if (form.data["amount"] - (bridgeFee + networkFee) <= 0) {
-                showAlert("Error", "Amount is too small to transfer.", "");
+                showAlert("Error", "The transfer is not possible since the amount is too low.", "");
                 return;
             }
             if (amount > balance) {
