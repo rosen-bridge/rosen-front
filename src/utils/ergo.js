@@ -91,7 +91,6 @@ const proxyTx = async (uTx, inputs) => {
     });
     return unsignedErgoTxToProxy(serial);
 };
-
 export const generateTX = async (
     inputs,
     changeAddress,
@@ -136,4 +135,14 @@ export const generateTX = async (
     const uTx = new wasm.UnsignedTransaction(unsignedInputs, new wasm.DataInputs(), txOutputs);
 
     return proxyTx(uTx, inputs);
+};
+
+export const isValidAddressErgo = async (address) => {
+    const wasm = await ergolib;
+    try {
+        wasm.Address.from_base58(address);
+        return true;
+    } catch (e) {
+        return false;
+    }
 };

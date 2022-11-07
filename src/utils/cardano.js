@@ -141,3 +141,13 @@ export const generateAdaTX = async (
     const txBody = txBuilder.build();
     return txBody;
 };
+
+export const isValidAddressCardano = async (address) => {
+    const adaLib = await adaLoader.load();
+    try {
+        adaLib.Address.from_bech32(address);
+        return true;
+    } catch (e) {
+        return false;
+    }
+};
