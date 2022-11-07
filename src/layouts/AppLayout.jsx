@@ -14,8 +14,12 @@ import DesktopLayout from "./DesktopLayout";
 import MobileLayout from "./MobileLayout";
 
 export default function AppLayout() {
-    const [mode, setMode] = React.useState("light");
-    const toggle_mode = () => setMode((prevMode) => (prevMode === "light" ? "dark" : "light"));
+    const [mode, setMode] = React.useState(localStorage.getItem("mode") || "light");
+    const toggle_mode = () => {
+        const newMode = mode === "light" ? "dark" : "light";
+        localStorage.setItem("mode", newMode);
+        setMode(newMode);
+    };
     const theme = React.useMemo(create_theme(mode), [mode]);
     const desktop = useMediaQuery(theme.breakpoints.up("sm"));
 
