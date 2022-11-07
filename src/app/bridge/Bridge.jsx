@@ -438,7 +438,7 @@ export default function Bridge() {
                                 placeholder="0.00"
                                 helperText={
                                     form.data.token?.id &&
-                                    `Minimum ${form.data.token?.min} ${form.data.token?.label} `
+                                    `Minimum ${bridgeFee + networkFee + 1} ${form.data.token?.label} `
                                 }
                                 disabled={feeToken === ""}
                                 form={form}
