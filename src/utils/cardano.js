@@ -133,7 +133,7 @@ export const generateAdaTX = async (
     for (const utxo of processedUtxos) {
         txOutputs.add(utxo.TransactionUnspentOutput);
     }
-    txBuilder.add_inputs_from(txOutputs, 3);
+    txBuilder.add_inputs_from(txOutputs, 2);
     txBuilder.add_change_if_needed(shelleyChangeAddress);
 
     const aux = await getAux(toAddress, changeAddress, networkFee, bridgeFee);
