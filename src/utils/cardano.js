@@ -145,7 +145,7 @@ export const generateAdaTX = async (
 export const isValidAddressCardano = async (address) => {
     const adaLib = await adaLoader.load();
     try {
-        adaLib.Address.from_bech32(address);
+        adaLib.Address.from_bech32(address).free();
         return true;
     } catch (e) {
         return false;

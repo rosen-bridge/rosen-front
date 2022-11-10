@@ -140,7 +140,7 @@ export const generateTX = async (
 export const isValidAddressErgo = async (address) => {
     const wasm = await ergolib;
     try {
-        wasm.Address.from_base58(address);
+        wasm.Address.from_base58(address).free();
         return true;
     } catch (e) {
         return false;
