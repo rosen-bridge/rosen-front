@@ -133,11 +133,21 @@ export const generateAdaTX = async (
     for (const utxo of processedUtxos) {
         txOutputs.add(utxo.TransactionUnspentOutput);
     }
-    txBuilder.add_inputs_from(txOutputs, 3);
+    txBuilder.add_inputs_from(txOutputs, 2);
     txBuilder.add_change_if_needed(shelleyChangeAddress);
 
     const aux = await getAux(toAddress, changeAddress, networkFee, bridgeFee);
     txBuilder.set_auxiliary_data(aux);
     const txBody = txBuilder.build();
     return txBody;
+};
+
+export const isValidAddressCardano = async (address) => {
+    const adaLib = await adaLoader.load();
+    try {
+        adaLib.Address.from_bech32(address).free();
+        return true;
+    } catch (e) {
+        return false;
+    }
 };

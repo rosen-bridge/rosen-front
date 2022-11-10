@@ -27,10 +27,10 @@ export default function AlertDialog({
                 <DialogContentText id="alert-dialog-description">{text}</DialogContentText>
             </DialogContent>
             <DialogActions>
-                <Button onClick={onClose}>{closeText}</Button>
                 <Button onClick={onProceed} autoFocus>
                     {proceedText}
                 </Button>
+                <Button onClick={onClose}>{closeText}</Button>
             </DialogActions>
         </Dialog>
     );

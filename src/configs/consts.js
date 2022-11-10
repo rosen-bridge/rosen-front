@@ -1,5 +1,5 @@
 export const consts = {
-    minBoxValue: "100000",
+    minBoxValue: "1500000",
     ergoFee: "1100000",
     adaFeeCoef: "44",
     adaFeeConstant: "255381",

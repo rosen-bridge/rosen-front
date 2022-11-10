@@ -12,7 +12,13 @@ import { Nautilus, Nami } from "../../wallets";
 import token_maps from "../../configs/tokenmap.json";
 import ergoContract from "../../configs/contract-ergo.json";
 import cardanoConract from "../../configs/contract-cardano.json";
-import { hex2ascii, connectToWallet, transfer } from "../../utils";
+import {
+    hex2ascii,
+    connectToWallet,
+    transfer,
+    isValidAddressErgo,
+    isValidAddressCardano
+} from "../../utils";
 import { consts } from "configs";
 import { BridgeMinimumFee } from "@rosen-bridge/minimum-fee-browser";
 import { default as ergoExplorer } from "../../explorer/ergo";
@@ -102,7 +108,7 @@ export default function Bridge() {
         if (sourceChain === "ERG") {
             const connected = await nautilus.isConnected();
             setWalletConnected(connected);
-        } else {
+        } else if (sourceChain === "ADA") {
             const connected = await nami.isConnected();
             setWalletConnected(connected);
         }
@@ -172,6 +178,9 @@ export default function Bridge() {
                 resetAll();
                 setSourceChain(data["source"].id);
                 setTargetChains(allChains.filter((item) => item.id !== data["source"].id));
+                connectToWallet(data["source"].id, nautilus, nami).then((result) => {
+                    if (result === 0) setWalletConnected(true);
+                });
             }
         }
     }, [form.data["source"]]);
@@ -318,12 +327,23 @@ export default function Bridge() {
                 setOpendialog(true);
                 return;
             }
+            if(!Number.isInteger(form.data["amount"])) {
+                showAlert("Error", "Only integer amounts are valid.", "");
+                return;
+            }
             if (form.data["amount"] - (bridgeFee + networkFee) <= 0) {
                 showAlert("Error", "The transfer is not possible since the amount is too low.", "");
                 return;
             }
             if (amount > balance) {
                 showAlert("Error", "Insufficient token balance.", "");
+                return;
+            }
+            if (
+                (target.id === "ERG" && !(await isValidAddressErgo(address))) ||
+                (target.id === "ADA" && !(await isValidAddressCardano(address)))
+            ) {
+                showAlert("Error", "Invalid target address.", "");
                 return;
             }
             setTransfering(true);
@@ -420,7 +440,7 @@ export default function Bridge() {
                                 name="targetToken"
                                 label="To Token"
                                 options={targetTokens}
-                                disabled={!form.data["target"]}
+                                disabled={!form.data["target"]?.id}
                                 form={form}
                             />
                         </Grid>
@@ -438,7 +458,9 @@ export default function Bridge() {
                                 placeholder="0.00"
                                 helperText={
                                     form.data.token?.id &&
-                                    `Minimum ${form.data.token?.min} ${form.data.token?.label} `
+                                    `Minimum ${bridgeFee + networkFee + 1} ${
+                                        form.data.token?.label
+                                    } `
                                 }
                                 disabled={feeToken === ""}
                                 form={form}
@@ -467,18 +489,22 @@ export default function Bridge() {
                         />
                         <ValueDisplay
                             title="Bridge Fee"
-                            value={bridgeFee}
+                            value={bridgeFee > 0 ? bridgeFee : "Pending"}
                             unit={form.data.token?.label || ""}
                         />
                         <ValueDisplay
                             title="Network Fee"
-                            value={networkFee}
+                            value={networkFee > 0 ? networkFee : "Pending"}
                             unit={form.data.token?.label || ""}
                         />
                         <Divider />
                         <ValueDisplay
                             title="You will receive"
-                            value={form.data["amount"] - (bridgeFee + networkFee) || 0}
+                            value={
+                                (form.data["amount"] - (bridgeFee + networkFee) || 0) >= 0
+                                    ? form.data["amount"] - (bridgeFee + networkFee) || 0
+                                    : "Amount is too low"
+                            }
                             unit={form.data.targetToken?.label || ""}
                             color="secondary.dark"
                         />
