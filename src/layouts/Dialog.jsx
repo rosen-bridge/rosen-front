@@ -27,7 +27,7 @@ export default function AlertDialog({
                 <DialogContentText id="alert-dialog-description">{text}</DialogContentText>
             </DialogContent>
             <DialogActions>
-                <Button onClick={onProceed} autoFocus>
+                <Button onClick={onProceed} autoFocus disabled={proceedText === ""}>
                     {proceedText}
                 </Button>
                 <Button onClick={onClose}>{closeText}</Button>

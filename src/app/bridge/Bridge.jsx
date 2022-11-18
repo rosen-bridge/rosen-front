@@ -119,7 +119,10 @@ export default function Bridge() {
         { id: "ADA", label: "Cardano", icon: "ADA.svg", tokenmap_name: "cardano" }
     ];
 
-    const resetAll = () => {
+    const resetAll = (resetSource = false) => {
+        if(resetSource) {
+          form.data.source = {};
+        }
         form.data.token = {};
         form.data.target = {};
         form.data.targetToken = {};
@@ -307,6 +310,7 @@ export default function Bridge() {
                 showAlert("Error", "Please select source chain.", "");
             }
         } else {
+            setTransfering(true);
             const token = form.data["token"];
             const target = form.data["target"];
             const targetToken = form.data["targetToken"];
@@ -325,18 +329,22 @@ export default function Bridge() {
                 setDialogTitle("Error");
                 setDialogText("Please fill out the form completely before submitting.");
                 setOpendialog(true);
+                setTransfering(false);
                 return;
             }
             if(!Number.isInteger(form.data["amount"])) {
                 showAlert("Error", "Only integer amounts are valid.", "");
+                setTransfering(false);
                 return;
             }
             if (form.data["amount"] - (bridgeFee + networkFee) <= 0) {
                 showAlert("Error", "The transfer is not possible since the amount is too low.", "");
+                setTransfering(false);
                 return;
             }
             if (amount > balance) {
                 showAlert("Error", "Insufficient token balance.", "");
+                setTransfering(false);
                 return;
             }
             if (
@@ -344,9 +352,8 @@ export default function Bridge() {
                 (target.id === "ADA" && !(await isValidAddressCardano(address)))
             ) {
                 showAlert("Error", "Invalid target address.", "");
-                return;
+                return setTransfering(false);
             }
-            setTransfering(true);
             try {
                 let txId = "";
                 if (sourceChain === "ERG") {
@@ -375,7 +382,7 @@ export default function Bridge() {
                     );
                 }
                 showAlert("Success", "Transaction submitted successfully. TxId: " + txId, "");
-                resetAll();
+                resetAll(true);
             } catch (e) {
                 showAlert("Error", "Failed to submit transaction. " + e.message, "");
             } finally {
@@ -457,7 +464,7 @@ export default function Bridge() {
                                 }
                                 placeholder="0.00"
                                 helperText={
-                                    form.data.token?.id &&
+                                    form.data.token?.id && bridgeFee + networkFee > 0 &&
                                     `Minimum ${bridgeFee + networkFee + 1} ${
                                         form.data.token?.label
                                     } `
@@ -503,7 +510,7 @@ export default function Bridge() {
                             value={
                                 (form.data["amount"] - (bridgeFee + networkFee) || 0) >= 0
                                     ? form.data["amount"] - (bridgeFee + networkFee) || 0
-                                    : "Amount is too low"
+                                    : "-"
                             }
                             unit={form.data.targetToken?.label || ""}
                             color="secondary.dark"
