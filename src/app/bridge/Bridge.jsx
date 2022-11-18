@@ -329,19 +329,23 @@ export default function Bridge() {
                 setDialogTitle("Error");
                 setDialogText("Please fill out the form completely before submitting.");
                 setOpendialog(true);
-                return setTransfering(false);
+                setTransfering(false);
+                return;
             }
             if(!Number.isInteger(form.data["amount"])) {
                 showAlert("Error", "Only integer amounts are valid.", "");
-                return setTransfering(false);
+                setTransfering(false);
+                return;
             }
             if (form.data["amount"] - (bridgeFee + networkFee) <= 0) {
                 showAlert("Error", "The transfer is not possible since the amount is too low.", "");
-                return setTransfering(false);
+                setTransfering(false);
+                return;
             }
             if (amount > balance) {
                 showAlert("Error", "Insufficient token balance.", "");
-                return setTransfering(false);
+                setTransfering(false);
+                return;
             }
             if (
                 (target.id === "ERG" && !(await isValidAddressErgo(address))) ||
