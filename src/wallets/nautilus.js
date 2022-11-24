@@ -1,4 +1,5 @@
 import { consts } from "../configs";
+import { fixedDecimals } from "../utils";
 
 const minBoxValue = consts.minBoxValue;
 const feeString = consts.ergoFee;
@@ -37,12 +38,17 @@ export class Nautilus {
 
     async getBalance(token) {
         const context = await this.getContext();
+        if (token === "erg") {
+            const amount = (await context.get_balance()) / Math.pow(10, 9);
+            return fixedDecimals(amount, 2);
+        }
         return context.get_balance(token);
     }
 
     async getUtxos(amount, token) {
         const context = await this.getContext();
-        const tokenUTXOs = await context.get_utxos(amount, token);
+        const tokenId = token === "erg" ? "ERG" : token;
+        const tokenUTXOs = await context.get_utxos(amount, tokenId);
         const minErgRequired = 2 * Number(minBoxValue) + Number(feeString);
         let ergAmount = 0;
         const boxIds = [];

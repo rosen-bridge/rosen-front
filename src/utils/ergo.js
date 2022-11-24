@@ -26,13 +26,15 @@ const getChangeBox = async (height, inputs, changeAddress, tokenId, tokenAmount)
     }
     const otherBoxesValue = -1 * (Number(minBoxValue) + Number(feeString));
     sumValue = sumValue.checked_add(wasm.I64.from_str(otherBoxesValue.toString()));
-    if (tokenMap.get(tokenId).to_str() === tokenAmount.toString()) {
-        tokenMap.delete(tokenId);
-    } else {
-        tokenMap.set(
-            tokenId,
-            tokenMap.get(tokenId).checked_add(wasm.I64.from_str((-1 * tokenAmount).toString()))
-        );
+    if (tokenMap.get(tokenId)) {
+        if (tokenMap.get(tokenId).to_str() === tokenAmount.toString()) {
+            tokenMap.delete(tokenId);
+        } else {
+            tokenMap.set(
+                tokenId,
+                tokenMap.get(tokenId).checked_add(wasm.I64.from_str((-1 * tokenAmount).toString()))
+            );
+        }
     }
 
     const changeBox = new wasm.ErgoBoxCandidateBuilder(
@@ -58,16 +60,18 @@ const getRosenBox = async (
     bridgeFee
 ) => {
     const wasm = await ergolib;
+    let boxValue = rosenValue;
+    if (tokenId === "erg") {
+        const nanoErgs = amount * Math.pow(10, 9);
+        boxValue = wasm.BoxValue.from_i64(wasm.I64.from_str(nanoErgs.toString()));
+    }
 
     const rosenBox = new wasm.ErgoBoxCandidateBuilder(
-        rosenValue,
+        boxValue,
         wasm.Contract.pay_to_address(wasm.Address.from_base58(ergoContract["addresses"]["lock"])),
         height
     );
-    rosenBox.add_token(
-        wasm.TokenId.from_str(tokenId),
-        wasm.TokenAmount.from_i64(wasm.I64.from_str(amount.toString()))
-    );
+
     rosenBox.set_register_value(
         wasm.NonMandatoryRegisterId.R4,
         wasm.Constant.from_coll_coll_byte([
@@ -78,6 +82,13 @@ const getRosenBox = async (
             string2uint8(fromAddress.toString())
         ])
     );
+
+    if (tokenId !== "erg") {
+        rosenBox.add_token(
+            wasm.TokenId.from_str(tokenId),
+            wasm.TokenAmount.from_i64(wasm.I64.from_str(amount.toString()))
+        );
+    }
     return rosenBox.build();
 };
 

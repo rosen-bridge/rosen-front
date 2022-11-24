@@ -1,4 +1,4 @@
-import { HexToAscii } from "../utils";
+import { HexToAscii, fixedDecimals } from "../utils";
 import adaLoader from "../utils/cardanoLoader";
 import AssetFingerprint from "@emurgo/cip14-js";
 
@@ -50,6 +50,10 @@ export class Nami {
 
         const balanceCBORHex = await API.getBalance();
         const value = ADA.Value.from_bytes(Buffer.from(balanceCBORHex, "hex"));
+        if (fingerprint === "lovelace") {
+            const amount = Number(value.coin().to_str()) / Math.pow(10, 6);
+            return fixedDecimals(amount, 2);
+        }
 
         const assets = [];
         if (value.multiasset()) {

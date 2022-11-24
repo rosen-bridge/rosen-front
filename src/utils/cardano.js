@@ -112,19 +112,28 @@ export const generateAdaTX = async (
     let txOutputBuilder = adaLib.TransactionOutputBuilder.new();
     txOutputBuilder = txOutputBuilder.with_address(shelleyOutputAddress);
     txOutputBuilder = txOutputBuilder.next();
+    if (assetPolicyIdHex === "") {
+        const lovelaceAmount = assetAmount * Math.pow(10, 6);
+        txOutputBuilder = txOutputBuilder.with_coin(
+            adaLib.BigNum.from_str(lovelaceAmount.toString())
+        );
+    } else {
+        let multiAsset = adaLib.MultiAsset.new();
+        let assets = adaLib.Assets.new();
+        assets.insert(
+            adaLib.AssetName.new(Buffer.from(assetNameHex, "hex")),
+            adaLib.BigNum.from_str(assetAmount.toString())
+        );
+        multiAsset.insert(
+            adaLib.ScriptHash.from_bytes(Buffer.from(assetPolicyIdHex, "hex")),
+            assets
+        );
 
-    let multiAsset = adaLib.MultiAsset.new();
-    let assets = adaLib.Assets.new();
-    assets.insert(
-        adaLib.AssetName.new(Buffer.from(assetNameHex, "hex")),
-        adaLib.BigNum.from_str(assetAmount.toString())
-    );
-    multiAsset.insert(adaLib.ScriptHash.from_bytes(Buffer.from(assetPolicyIdHex, "hex")), assets);
-
-    txOutputBuilder = txOutputBuilder.with_asset_and_min_required_coin(
-        multiAsset,
-        adaLib.BigNum.from_str(consts.adaMinCoin)
-    );
+        txOutputBuilder = txOutputBuilder.with_asset_and_min_required_coin(
+            multiAsset,
+            adaLib.BigNum.from_str(consts.adaMinCoin)
+        );
+    }
     const txOutput = txOutputBuilder.build();
     txBuilder.add_output(txOutput);
 

@@ -120,8 +120,8 @@ export default function Bridge() {
     ];
 
     const resetAll = (resetSource = false) => {
-        if(resetSource) {
-          form.data.source = {};
+        if (resetSource) {
+            form.data.source = {};
         }
         form.data.token = {};
         form.data.target = {};
@@ -142,6 +142,10 @@ export default function Bridge() {
 
     const mapTokenMap = (cb) => {
         return token_maps.tokens?.map(cb);
+    };
+
+    const filterTokenMap = (cb) => {
+        return token_maps.tokens?.filter(cb);
     };
 
     const updateFees = (amount, fees) => {
@@ -244,40 +248,55 @@ export default function Bridge() {
 
     useEffect(() => {
         async function caclucateFees(tokenId, chain) {
-            const height =
-                chain === "ergo"
-                    ? await ergoExplorer.getHeight()
-                    : await cardanoExplorer.getHeight();
-            const minFeeIndex = chain === "ergo" ? 0 : 1;
-            const fees = await minFee[minFeeIndex].getFee(tokenId, chain, height);
-            const nextFees = await minFee[minFeeIndex].getFee(
-                tokenId,
-                chain,
-                height + consts.nextfeeHeight
-            );
-            if (fees.bridgeFee !== nextFees.bridgeFee || fees.networkFee !== nextFees.networkFee) {
-                showAlert(
-                    "Warning",
-                    "Fees might change depending on the height of mining the transactions.",
-                    ""
-                );
-            }
-            const localMinFees = {
-                networkFee: Number(fees.networkFee.toString()),
-                bridgeFee: Number(fees.bridgeFee.toString())
+            let localMinFees = {
+                networkFee: 0,
+                bridgeFee: 0
             };
-            setFetchedFees(localMinFees);
-            setFeeToken(form.data.token.id);
-            updateFees(0, localMinFees);
+            try {
+                const height =
+                    chain === "ergo"
+                        ? await ergoExplorer.getHeight()
+                        : await cardanoExplorer.getHeight();
+                const minFeeIndex = chain === "ergo" ? 0 : 1;
+                const fees = await minFee[minFeeIndex].getFee(tokenId, chain, height);
+                const nextFees = await minFee[minFeeIndex].getFee(
+                    tokenId,
+                    chain,
+                    height + consts.nextfeeHeight
+                );
+                if (
+                    fees.bridgeFee !== nextFees.bridgeFee ||
+                    fees.networkFee !== nextFees.networkFee
+                ) {
+                    showAlert(
+                        "Warning",
+                        "Fees might change depending on the height of mining the transactions.",
+                        ""
+                    );
+                }
+                localMinFees = {
+                    networkFee: Number(fees.networkFee.toString()),
+                    bridgeFee: Number(fees.bridgeFee.toString())
+                };
+            } catch (e) {
+                showAlert("Error", "Failed to fetch fees", "");
+                console.error(e);
+            } finally {
+                setFetchedFees(localMinFees);
+                setFeeToken(form.data.token.id);
+                updateFees(0, localMinFees);
+            }
         }
         if (form.data.token && Object.keys(form.data.token).length > 0) {
             if (form.data.token.id !== feeToken) {
                 const chain = form.data.source.id === "ERG" ? "ergo" : "cardano";
-                const mappedTokens = mapTokenMap((item) => {
-                    if (item.cardano.fingerprint === form.data.token.id) return item.ergo;
-                });
+                const filteredTokens = filterTokenMap(
+                    (item) => item.cardano.fingerprint === form.data.token.id
+                );
                 const tokenId =
-                    form.data.source.id === "ERG" ? form.data.token.id : mappedTokens[0].tokenId;
+                    form.data.source.id === "ERG"
+                        ? form.data.token.id
+                        : filteredTokens[0].ergo.tokenId;
 
                 caclucateFees(tokenId, chain);
                 return;
@@ -332,7 +351,7 @@ export default function Bridge() {
                 setTransfering(false);
                 return;
             }
-            if(!Number.isInteger(form.data["amount"])) {
+            if (!Number.isInteger(form.data["amount"])) {
                 showAlert("Error", "Only integer amounts are valid.", "");
                 setTransfering(false);
                 return;
@@ -384,6 +403,7 @@ export default function Bridge() {
                 showAlert("Success", "Transaction submitted successfully. TxId: " + txId, "");
                 resetAll(true);
             } catch (e) {
+                console.error(e);
                 showAlert("Error", "Failed to submit transaction. " + e.message, "");
             } finally {
                 setTransfering(false);
@@ -464,7 +484,8 @@ export default function Bridge() {
                                 }
                                 placeholder="0.00"
                                 helperText={
-                                    form.data.token?.id && bridgeFee + networkFee > 0 &&
+                                    form.data.token?.id &&
+                                    bridgeFee + networkFee > 0 &&
                                     `Minimum ${bridgeFee + networkFee + 1} ${
                                         form.data.token?.label
                                     } `
