@@ -1,3 +1,4 @@
+/* global BigInt */
 import ergoContract from "../configs/contract-ergo.json";
 import { consts } from "../configs";
 import { string2uint8, unsignedErgoTxToProxy } from "../utils";
@@ -62,7 +63,7 @@ const getRosenBox = async (
     const wasm = await ergolib;
     let boxValue = rosenValue;
     if (tokenId === "erg") {
-        const nanoErgs = amount * Math.pow(10, 9);
+        const nanoErgs = BigInt(amount) * BigInt(10 ** 9);
         boxValue = wasm.BoxValue.from_i64(wasm.I64.from_str(nanoErgs.toString()));
     }
 

@@ -1,3 +1,4 @@
+/* global BigInt */
 import adaLoader from "../utils/cardanoLoader";
 import { consts } from "../configs";
 import rosen_config from "../configs/rosen.json";
@@ -113,7 +114,7 @@ export const generateAdaTX = async (
     txOutputBuilder = txOutputBuilder.with_address(shelleyOutputAddress);
     txOutputBuilder = txOutputBuilder.next();
     if (assetPolicyIdHex === "") {
-        const lovelaceAmount = assetAmount * Math.pow(10, 6);
+        const lovelaceAmount = BigInt(assetAmount) * BigInt(10 ** 6);
         txOutputBuilder = txOutputBuilder.with_coin(
             adaLib.BigNum.from_str(lovelaceAmount.toString())
         );
