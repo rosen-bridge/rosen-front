@@ -403,7 +403,6 @@ export default function Bridge() {
                 showAlert("Success", "Transaction submitted successfully. TxId: " + txId, "");
                 resetAll(true);
             } catch (e) {
-                console.error(e);
                 showAlert("Error", "Failed to submit transaction. " + e.message, "");
             } finally {
                 setTransfering(false);
