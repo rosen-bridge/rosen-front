@@ -63,8 +63,7 @@ const getRosenBox = async (
     const wasm = await ergolib;
     let boxValue = rosenValue;
     if (tokenId === "erg") {
-        const nanoErgs = BigInt(amount) * BigInt(10 ** 9);
-        boxValue = wasm.BoxValue.from_i64(wasm.I64.from_str(nanoErgs.toString()));
+        boxValue = wasm.BoxValue.from_i64(wasm.I64.from_str(amount.toString()));
     }
 
     const rosenBox = new wasm.ErgoBoxCandidateBuilder(

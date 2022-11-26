@@ -38,11 +38,9 @@ export class Nautilus {
 
     async getBalance(token) {
         const context = await this.getContext();
-        if (token === "erg") {
-            const amount = (await context.get_balance()) / Math.pow(10, 9);
-            return fixedDecimals(amount, 2);
-        }
-        return context.get_balance(token);
+        return context.get_balance(
+            token === consts.ergTokenName ? consts.ergTokenNameEIP12 : token
+        );
     }
 
     async getUtxos(amount, token) {
