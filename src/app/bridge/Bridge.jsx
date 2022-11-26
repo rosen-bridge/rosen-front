@@ -150,7 +150,7 @@ export default function Bridge() {
 
     const updateFees = (amount, fees) => {
         setNetworkFee(fees.networkFee);
-        if (fees.bridgeFee > 0) {
+        if (fees.bridgeFee >= 1) {
             setBridgeFee(Math.max(fees.bridgeFee, Math.ceil(amount * consts.feeRatio)));
         } else {
             setBridgeFee(fees.bridgeFee);
@@ -256,6 +256,10 @@ export default function Bridge() {
                 networkFee: 0,
                 bridgeFee: 0
             };
+            if (tokenId === "erg" && chain === "ergo") {
+                localMinFees.networkFee = 0.1;
+                localMinFees.bridgeFee = 0.2;
+            }
             try {
                 const height =
                     chain === "ergo"
@@ -376,7 +380,7 @@ export default function Bridge() {
                 showAlert("Error", "Invalid target address.", "");
                 return setTransfering(false);
             }
-            try {
+            // try {
                 let txId = "";
                 if (sourceChain === "ERG") {
                     amount = amount * Math.pow(10, token.decimals);
@@ -405,11 +409,11 @@ export default function Bridge() {
                 }
                 showAlert("Success", "Transaction submitted successfully. TxId: " + txId, "");
                 resetAll(true);
-            } catch (e) {
-                showAlert("Error", "Failed to submit transaction. " + e.message, "");
-            } finally {
-                setTransfering(false);
-            }
+            // } catch (e) {
+            //     showAlert("Error", "Failed to submit transaction. " + e.message, "");
+            // } finally {
+            //     setTransfering(false);
+            // }
         }
     }
 
