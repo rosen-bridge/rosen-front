@@ -71,15 +71,14 @@ export const getAux = async (toAddress, fromAddress, networkFee, bridgeFee) => {
             adaLib.TransactionMetadatum.new_text(metadataJson[key])
         );
     }
-    // Inserting fromAddress
+
     const fromAddressList = adaLib.MetadataList.new();
-    let fromAddressChunks = Math.trunc(fromAddress.length / 64);
-    if (fromAddress.length % 64 !== 0) {
-        fromAddressChunks++;
+    let i = 0;
+    while (i < fromAddress.length) {
+        fromAddressList.add(adaLib.TransactionMetadatum.new_text(fromAddress.substr(i, 64)));
+        i += 64;
     }
-    for (let i = 0; i < fromAddressChunks; i++) {
-        fromAddressList.add(adaLib.TransactionMetadatum.new_text(fromAddress.substr(i * 64, 64)));
-    }
+
     map.insert(
         adaLib.TransactionMetadatum.new_text("fromAddress"),
         adaLib.TransactionMetadatum.new_list(fromAddressList)
