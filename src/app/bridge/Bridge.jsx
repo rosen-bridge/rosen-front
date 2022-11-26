@@ -71,11 +71,11 @@ export default function Bridge() {
     const [dialogTitle, setDialogTitle] = useState("");
     const [dialogText, setDialogText] = useState("");
     const [dialogProceedText, setDialogProceedText] = useState("");
-    const [bridgeFee, setBridgeFee] = useState(0);
-    const [networkFee, setNetworkFee] = useState(0);
+    const [bridgeFee, setBridgeFee] = useState(-1);
+    const [networkFee, setNetworkFee] = useState(-1);
     const [fetchedFees, setFetchedFees] = useState({
-        bridgeFee: 0,
-        networkFee: 0
+        bridgeFee: -1,
+        networkFee: -1
     });
     const [feeToken, setFeeToken] = useState("");
 
@@ -131,11 +131,11 @@ export default function Bridge() {
         setTargetTokens([]);
         setWalletConnected(false);
         setBalance(0);
-        setBridgeFee(0);
-        setNetworkFee(0);
+        setBridgeFee(-1);
+        setNetworkFee(-1);
         setFetchedFees({
-            bridgeFee: 0,
-            networkFee: 0
+            bridgeFee: -1,
+            networkFee: -1
         });
         setFeeToken("");
     };
@@ -150,7 +150,11 @@ export default function Bridge() {
 
     const updateFees = (amount, fees) => {
         setNetworkFee(fees.networkFee);
-        setBridgeFee(Math.max(fees.bridgeFee, Math.ceil(amount * consts.feeRatio)));
+        if (fees.bridgeFee > 0) {
+            setBridgeFee(Math.max(fees.bridgeFee, Math.ceil(amount * consts.feeRatio)));
+        } else {
+            setBridgeFee(fees.bridgeFee);
+        }
     };
 
     useEffect(() => {
@@ -280,7 +284,6 @@ export default function Bridge() {
                 };
             } catch (e) {
                 showAlert("Error", "Failed to fetch fees", "");
-                console.error(e);
             } finally {
                 setFetchedFees(localMinFees);
                 setFeeToken(form.data.token.id);
@@ -516,12 +519,12 @@ export default function Bridge() {
                         />
                         <ValueDisplay
                             title="Bridge Fee"
-                            value={bridgeFee > 0 ? bridgeFee : "Pending"}
+                            value={bridgeFee >= 0 ? bridgeFee : "Pending"}
                             unit={form.data.token?.label || ""}
                         />
                         <ValueDisplay
                             title="Network Fee"
-                            value={networkFee > 0 ? networkFee : "Pending"}
+                            value={networkFee >= 0 ? networkFee : "Pending"}
                             unit={form.data.token?.label || ""}
                         />
                         <Divider />
