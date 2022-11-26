@@ -15,5 +15,5 @@ export const consts = {
     feeRatio: 0.1,
     nextfeeHeight: 5,
     ergTokenName: "erg",
-    ergTokenNameEIP12: "ERG",
+    ergTokenNameEIP12: "ERG"
 };

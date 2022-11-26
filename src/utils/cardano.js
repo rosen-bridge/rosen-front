@@ -57,14 +57,12 @@ const getProccessedUtxos = async (rawUtxos) => {
 
 export const getAux = async (toAddress, fromAddress, networkFee, bridgeFee) => {
     const adaLib = await adaLoader.load();
-    const fromAddressHash = Buffer.from(blake2b(fromAddress, undefined, 32)).toString("hex");
 
     const metadataJson = {
         to: "ergo",
         bridgeFee: bridgeFee.toString(),
         networkFee: networkFee.toString(),
-        toAddress,
-        fromAddressHash
+        toAddress
     };
     const map = adaLib.MetadataMap.new();
     for (const key in metadataJson) {
@@ -73,6 +71,18 @@ export const getAux = async (toAddress, fromAddress, networkFee, bridgeFee) => {
             adaLib.TransactionMetadatum.new_text(metadataJson[key])
         );
     }
+
+    const fromAddressList = adaLib.MetadataList.new();
+    let i = 0;
+    while (i < fromAddress.length) {
+        fromAddressList.add(adaLib.TransactionMetadatum.new_text(fromAddress.substr(i, 64)));
+        i += 64;
+    }
+
+    map.insert(
+        adaLib.TransactionMetadatum.new_text("fromAddress"),
+        adaLib.TransactionMetadatum.new_list(fromAddressList)
+    );
     const generalTxMetadata = adaLib.GeneralTransactionMetadata.new();
     generalTxMetadata.insert(adaLib.BigNum.from_str("0"), adaLib.TransactionMetadatum.new_map(map));
     const aux = adaLib.AuxiliaryData.new();
