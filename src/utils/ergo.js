@@ -33,7 +33,7 @@ const getChangeBox = async (
             }
         }
     }
-    
+
     const otherBoxesValue = -1 * (Number(rosenValue) + Number(feeValue));
     sumValue = sumValue.checked_add(wasm.I64.from_str(otherBoxesValue.toString()));
     if (tokenMap.get(tokenId)) {

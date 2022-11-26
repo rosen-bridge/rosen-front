@@ -78,6 +78,7 @@ export default function Bridge() {
         networkFee: -1
     });
     const [feeToken, setFeeToken] = useState("");
+    const [receivingAmount, setReceivingAmount] = useState(0);
 
     const closeDialog = () => {
         setDialogTitle("");
@@ -138,6 +139,7 @@ export default function Bridge() {
             networkFee: -1
         });
         setFeeToken("");
+        setReceivingAmount(0);
     };
 
     const mapTokenMap = (cb) => {
@@ -180,7 +182,8 @@ export default function Bridge() {
                         label: hex2ascii(cardanoItem.assetName),
                         policyId: cardanoItem.policyId,
                         icon: "ADA.svg",
-                        min: 1
+                        min: 1,
+                        decimals: cardanoItem.fingerprint === "lovelace" ? 6 : 0
                     };
                 })
             );
@@ -256,9 +259,10 @@ export default function Bridge() {
                 networkFee: 0,
                 bridgeFee: 0
             };
-            if (tokenId === "erg" && chain === "ergo") {
-                localMinFees.networkFee = 0.1;
-                localMinFees.bridgeFee = 0.2;
+            if (tokenId === "erg") {
+                // Hardcoded for testing
+                localMinFees.networkFee = 100000000;
+                localMinFees.bridgeFee = 200000000;
             }
             try {
                 const height =
@@ -307,6 +311,11 @@ export default function Bridge() {
 
                 caclucateFees(tokenId, chain);
                 return;
+            } else {
+                setReceivingAmount(
+                    form.data.amount -
+                        (networkFee + bridgeFee) / Math.pow(10, form.data.token.decimals)
+                );
             }
         }
         if (form.data.amount && form.data?.token?.id === feeToken) {
@@ -380,7 +389,7 @@ export default function Bridge() {
                 showAlert("Error", "Invalid target address.", "");
                 return setTransfering(false);
             }
-            // try {
+            try {
                 let txId = "";
                 if (sourceChain === "ERG") {
                     amount = amount * Math.pow(10, token.decimals);
@@ -409,11 +418,11 @@ export default function Bridge() {
                 }
                 showAlert("Success", "Transaction submitted successfully. TxId: " + txId, "");
                 resetAll(true);
-            // } catch (e) {
-            //     showAlert("Error", "Failed to submit transaction. " + e.message, "");
-            // } finally {
-            //     setTransfering(false);
-            // }
+            } catch (e) {
+                showAlert("Error", "Failed to submit transaction. " + e.message, "");
+            } finally {
+                setTransfering(false);
+            }
         }
     }
 
@@ -523,22 +532,26 @@ export default function Bridge() {
                         />
                         <ValueDisplay
                             title="Bridge Fee"
-                            value={bridgeFee >= 0 ? bridgeFee : "Pending"}
+                            value={
+                                bridgeFee >= 0
+                                    ? bridgeFee / Math.pow(10, form.data.token.decimals)
+                                    : "Pending"
+                            }
                             unit={form.data.token?.label || ""}
                         />
                         <ValueDisplay
                             title="Network Fee"
-                            value={networkFee >= 0 ? networkFee : "Pending"}
+                            value={
+                                networkFee >= 0
+                                    ? networkFee / Math.pow(10, form.data.token.decimals)
+                                    : "Pending"
+                            }
                             unit={form.data.token?.label || ""}
                         />
                         <Divider />
                         <ValueDisplay
                             title="You will receive"
-                            value={
-                                (form.data["amount"] - (bridgeFee + networkFee) || 0) >= 0
-                                    ? form.data["amount"] - (bridgeFee + networkFee) || 0
-                                    : "-"
-                            }
+                            value={receivingAmount >= 0 ? receivingAmount : "-"}
                             unit={form.data.targetToken?.label || ""}
                             color="secondary.dark"
                         />
