@@ -17,7 +17,9 @@ import {
     connectToWallet,
     transfer,
     isValidAddressErgo,
-    isValidAddressCardano
+    isValidAddressCardano,
+    countDecimals,
+    fixedDecimals
 } from "../../utils";
 import { consts } from "configs";
 import { BridgeMinimumFee } from "@rosen-bridge/minimum-fee-browser";
@@ -152,11 +154,11 @@ export default function Bridge() {
 
     const updateFees = (amount, fees) => {
         setNetworkFee(fees.networkFee);
-        if (fees.bridgeFee >= 1) {
-            setBridgeFee(Math.max(fees.bridgeFee, Math.ceil(amount * consts.feeRatio)));
-        } else {
-            setBridgeFee(fees.bridgeFee);
-        }
+        const bridgeFee = Math.max(fees.bridgeFee, Math.ceil(amount * consts.feeRatio));
+        setBridgeFee(bridgeFee);
+        setReceivingAmount(
+            amount - (fees.networkFee + bridgeFee) / Math.pow(10, form.data.token.decimals)
+        );
     };
 
     useEffect(() => {
@@ -169,7 +171,6 @@ export default function Bridge() {
                         id: ergoItem.tokenId,
                         label: ergoItem.tokenName,
                         icon: "ERG.svg",
-                        min: 1,
                         decimals: ergoItem.decimals || 0
                     };
                 })
@@ -182,7 +183,6 @@ export default function Bridge() {
                         label: hex2ascii(cardanoItem.assetName),
                         policyId: cardanoItem.policyId,
                         icon: "ADA.svg",
-                        min: 1,
                         decimals: cardanoItem.fingerprint === "lovelace" ? 6 : 0
                     };
                 })
@@ -219,7 +219,7 @@ export default function Bridge() {
                             id: ergoItem.tokenId,
                             label: ergoItem.tokenName,
                             icon: "ERG.svg",
-                            min: 1
+                            decimals: ergoItem.decimals || 0
                         };
                         setTargetTokens([ergoToken]);
                         form.data.targetToken = ergoToken;
@@ -230,7 +230,7 @@ export default function Bridge() {
                             label: hex2ascii(cardanoItem.assetName),
                             policyId: cardanoItem.policyId,
                             icon: "ADA.svg",
-                            min: 1
+                            decimals: cardanoItem.fingerprint === "lovelace" ? 6 : 0
                         };
                         setTargetTokens([cardanoToken]);
                         form.data.targetToken = cardanoToken;
@@ -243,13 +243,8 @@ export default function Bridge() {
     useEffect(() => {
         const { data } = form;
         if (data["token"] && Object.keys(data["token"]).length > 0 && walletConnected) {
-            if (sourceChain === "ERG") {
-                nautilus
-                    .getBalance(data.token?.id)
-                    .then((balance) => setBalance(balance / Math.pow(10, data.token?.decimals)));
-            } else {
-                nami.getBalance(data.token?.id).then((balance) => setBalance(balance));
-            }
+            const wallet = sourceChain === "ERG" ? nautilus : nami;
+            wallet.getBalance(data.token?.id).then((balance) => setBalance(balance));
         }
     }, [form.data["token"], walletConnected]);
 
@@ -295,10 +290,14 @@ export default function Bridge() {
             } finally {
                 setFetchedFees(localMinFees);
                 setFeeToken(form.data.token.id);
-                updateFees(0, localMinFees);
+                updateFees(form.data.amount, localMinFees);
             }
         }
         if (form.data.token && Object.keys(form.data.token).length > 0) {
+            updateFees(0, {
+                networkFee: 0,
+                bridgeFee: 0
+            });
             if (form.data.token.id !== feeToken) {
                 const chain = form.data.source.id === "ERG" ? "ergo" : "cardano";
                 const filteredTokens = filterTokenMap(
@@ -349,7 +348,7 @@ export default function Bridge() {
             const token = form.data["token"];
             const target = form.data["target"];
             const targetToken = form.data["targetToken"];
-            let amount = form.data["amount"];
+            const amount = form.data["amount"] * Math.pow(10, form.data["token"].decimals);
             const address = form.data["address"];
             if (
                 !token ||
@@ -367,12 +366,12 @@ export default function Bridge() {
                 setTransfering(false);
                 return;
             }
-            if (!Number.isInteger(form.data["amount"])) {
-                showAlert("Error", "Only integer amounts are valid.", "");
+            if (countDecimals(form.data["amount"]) > token.decimals) {
+                showAlert("Error", "Entered decimals is more than allowed.", "");
                 setTransfering(false);
                 return;
             }
-            if (form.data["amount"] - (bridgeFee + networkFee) <= 0) {
+            if (amount - (bridgeFee + networkFee) <= 0) {
                 showAlert("Error", "The transfer is not possible since the amount is too low.", "");
                 setTransfering(false);
                 return;
@@ -392,7 +391,6 @@ export default function Bridge() {
             try {
                 let txId = "";
                 if (sourceChain === "ERG") {
-                    amount = amount * Math.pow(10, token.decimals);
                     txId = await transfer(
                         sourceChain,
                         nautilus,
@@ -501,9 +499,10 @@ export default function Bridge() {
                                 helperText={
                                     form.data.token?.id &&
                                     bridgeFee + networkFee > 0 &&
-                                    `Minimum ${bridgeFee + networkFee + 1} ${
-                                        form.data.token?.label
-                                    } `
+                                    `Minimum ${
+                                        (bridgeFee + networkFee) /
+                                        Math.pow(10, form.data.token?.decimals || 0)
+                                    } ${form.data.token?.label} `
                                 }
                                 disabled={feeToken === ""}
                                 form={form}
@@ -527,7 +526,7 @@ export default function Bridge() {
                     >
                         <ValueDisplay
                             title="Wallet Balance"
-                            value={balance}
+                            value={balance / Math.pow(10, form.data.token?.decimals || 0)}
                             unit={form.data.token?.label || ""}
                         />
                         <ValueDisplay
@@ -551,7 +550,15 @@ export default function Bridge() {
                         <Divider />
                         <ValueDisplay
                             title="You will receive"
-                            value={receivingAmount >= 0 ? receivingAmount : "-"}
+                            value={
+                                receivingAmount >= 0
+                                    ? fixedDecimals(
+                                          receivingAmount /
+                                              Math.pow(10, form.data.targetToken?.decimals || 0),
+                                          form.data.targetToken?.decimals || 0
+                                      )
+                                    : "-"
+                            }
                             unit={form.data.targetToken?.label || ""}
                             color="secondary.dark"
                         />

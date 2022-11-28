@@ -124,7 +124,7 @@ export const generateAdaTX = async (
     txOutputBuilder = txOutputBuilder.with_address(shelleyOutputAddress);
     txOutputBuilder = txOutputBuilder.next();
     if (assetPolicyIdHex === "") {
-        const lovelaceAmount = BigInt(assetAmount) * BigInt(10 ** 6);
+        const lovelaceAmount = BigInt(assetAmount);
         txOutputBuilder = txOutputBuilder.with_coin(
             adaLib.BigNum.from_str(lovelaceAmount.toString())
         );
