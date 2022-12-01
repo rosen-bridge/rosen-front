@@ -83,6 +83,7 @@ export default function Bridge() {
     });
     const [feeToken, setFeeToken] = useState("");
     const [receivingAmount, setReceivingAmount] = useState(0);
+    const [amount, setAmount] = useState(0);
 
     const closeDialog = () => {
         setDialogTitle("");
@@ -131,7 +132,7 @@ export default function Bridge() {
         form.data.token = {};
         form.data.target = {};
         form.data.targetToken = {};
-        form.data.amount = "";
+        setAmount(0);
         form.data.address = "";
         setTargetTokens([]);
         setWalletConnected(false);
@@ -285,7 +286,7 @@ export default function Bridge() {
             } finally {
                 setFetchedFees(localMinFees);
                 setFeeToken(form.data.token.id);
-                updateFees(form.data.amount, localMinFees);
+                updateFees(amount, localMinFees);
             }
         }
         if (form.data.token && Object.keys(form.data.token).length > 0) {
@@ -304,15 +305,14 @@ export default function Bridge() {
                 return;
             } else {
                 setReceivingAmount(
-                    form.data.amount -
-                        (networkFee + bridgeFee) / Math.pow(10, form.data.token.decimals)
+                    amount - (networkFee + bridgeFee) / Math.pow(10, form.data.token.decimals)
                 );
             }
         }
-        if (form.data.amount && form.data?.token?.id === feeToken) {
-            updateFees(form.data.amount, fetchedFees);
+        if (amount > 0 && form.data?.token?.id === feeToken) {
+            updateFees(amount, fetchedFees);
         }
-    }, [form.data["amount"], form.data["token"]]);
+    }, [amount, form.data["token"]]);
 
     async function handle_submit() {
         if (!walletConnected) {
@@ -340,7 +340,7 @@ export default function Bridge() {
             const token = form.data["token"];
             const target = form.data["target"];
             const targetToken = form.data["targetToken"];
-            const amount = form.data["amount"] * Math.pow(10, form.data["token"].decimals);
+            const paymentAmount = amount * Math.pow(10, form.data["token"].decimals);
             const address = form.data["address"];
             if (
                 !token ||
@@ -349,7 +349,6 @@ export default function Bridge() {
                 Object.keys(token).length === 0 ||
                 Object.keys(target).length === 0 ||
                 Object.keys(targetToken).length === 0 ||
-                !amount ||
                 !address
             ) {
                 setDialogTitle("Error");
@@ -358,17 +357,12 @@ export default function Bridge() {
                 setTransfering(false);
                 return;
             }
-            if (countDecimals(form.data["amount"]) > token.decimals) {
-                showAlert("Error", "Entered decimals is more than allowed.", "");
-                setTransfering(false);
-                return;
-            }
-            if (amount - (bridgeFee + networkFee) <= 0) {
+            if (paymentAmount - (bridgeFee + networkFee) <= 0) {
                 showAlert("Error", "The transfer is not possible since the amount is too low.", "");
                 setTransfering(false);
                 return;
             }
-            if (amount > balance) {
+            if (paymentAmount > balance) {
                 showAlert("Error", "Insufficient token balance.", "");
                 setTransfering(false);
                 return;
@@ -386,7 +380,7 @@ export default function Bridge() {
                     txId = await transfer(
                         sourceChain,
                         nautilus,
-                        amount,
+                        paymentAmount,
                         token.id,
                         target.id,
                         address,
@@ -397,7 +391,7 @@ export default function Bridge() {
                     txId = await transfer(
                         sourceChain,
                         nami,
-                        amount,
+                        paymentAmount,
                         token.policyId,
                         target.id,
                         address,
@@ -413,6 +407,17 @@ export default function Bridge() {
             } finally {
                 setTransfering(false);
             }
+        }
+    }
+
+    async function handle_amount(e) {
+        const newValue = e.target.value;
+        if (!newValue) {
+            setAmount(0);
+        } else if (countDecimals(newValue) > form.data.token.decimals) {
+            setAmount(fixedDecimals(newValue, form.data.token.decimals));
+        } else {
+            setAmount(newValue);
         }
     }
 
@@ -498,6 +503,8 @@ export default function Bridge() {
                                 }
                                 disabled={feeToken === ""}
                                 form={form}
+                                text={amount}
+                                manualChange={handle_amount}
                                 sx={{ input: { fontSize: "2rem" } }}
                             />
                         </Grid>

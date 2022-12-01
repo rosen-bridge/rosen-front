@@ -36,9 +36,11 @@ export default function InputText({
     placeholder,
     error,
     helperText,
+    text,
+    manualChange,
     ...restProps
 }) {
-    const value = form.data[name] || "";
+    const value = text || form.data[name] || "";
 
     function handle_change(e) {
         form.put(name, e.target.value);
@@ -50,7 +52,7 @@ export default function InputText({
                 autoComplete="off"
                 label={label}
                 value={value}
-                onChange={handle_change}
+                onChange={manualChange || handle_change}
                 multiline={type === "textarea"}
                 rows={3}
                 placeholder={placeholder}
