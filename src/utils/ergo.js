@@ -1,4 +1,3 @@
-/* global BigInt */
 import ergoContract from "../configs/contract-ergo.json";
 import { consts } from "../configs";
 import { string2uint8, unsignedErgoTxToProxy } from "../utils";
