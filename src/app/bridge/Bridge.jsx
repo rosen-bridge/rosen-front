@@ -250,12 +250,12 @@ export default function Bridge() {
 
     useEffect(() => {
         async function caclucateFees(tokenId, chain) {
+            // Hardcoded for testing
             let localMinFees = {
-                networkFee: 0,
-                bridgeFee: 0
+                networkFee: 100000,
+                bridgeFee: 200000
             };
             if (tokenId === "erg") {
-                // Hardcoded for testing
                 localMinFees.networkFee = 100000000;
                 localMinFees.bridgeFee = 200000000;
             }
