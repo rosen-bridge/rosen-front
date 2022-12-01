@@ -31,8 +31,7 @@ export const transfer = async (
     bridgeFee,
     targetLabel = ""
 ) => {
-    console.log("fees", networkFee,
-    bridgeFee);
+    console.log("fees", networkFee, bridgeFee);
     if (sourceChain === "ERG") {
         let uTxos;
         try {

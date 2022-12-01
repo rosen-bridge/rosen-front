@@ -9,7 +9,8 @@ import AlertDialog from "layouts/Dialog";
 import useMediaQuery from "@mui/material/useMediaQuery";
 import { useTheme } from "@mui/material/styles";
 import { Nautilus, Nami } from "../../wallets";
-import token_maps from "../../configs/tokenmap.json";
+import tokenMapFile from "../../configs/tokenmap.json";
+import { TokenMap } from "@rosen-bridge/tokens";
 import ergoContract from "../../configs/contract-ergo.json";
 import cardanoConract from "../../configs/contract-cardano.json";
 import {
@@ -40,6 +41,7 @@ const cardanoMinfee = new BridgeMinimumFee(
     cardanoConract.tokens.RSNRatioNFT
 );
 const minFee = [ergoMinfee, cardanoMinfee];
+const tokenMap = new TokenMap(tokenMapFile);
 
 export function ValueDisplay({ title, value, unit, color = "primary" }) {
     return (
@@ -144,14 +146,6 @@ export default function Bridge() {
         setReceivingAmount(0);
     };
 
-    const mapTokenMap = (cb) => {
-        return token_maps.tokens?.map(cb);
-    };
-
-    const filterTokenMap = (cb) => {
-        return token_maps.tokens?.filter(cb);
-    };
-
     const updateFees = (amount, fees) => {
         setNetworkFee(fees.networkFee);
         const bridgeFee = Math.max(fees.bridgeFee, Math.ceil(amount * consts.feeRatio));
@@ -164,8 +158,9 @@ export default function Bridge() {
     useEffect(() => {
         const { data } = form;
         if (!data["source"]) {
+            const tokens = tokenMap.search("ergo", {});
             setErgoTokens(
-                mapTokenMap((item) => {
+                tokens.map((item) => {
                     const ergoItem = item.ergo;
                     return {
                         id: ergoItem.tokenId,
@@ -176,7 +171,7 @@ export default function Bridge() {
                 })
             );
             setCardanoTokens(
-                mapTokenMap((item) => {
+                tokens.map((item) => {
                     const cardanoItem = item.cardano;
                     return {
                         id: cardanoItem.fingerprint,
@@ -208,9 +203,9 @@ export default function Bridge() {
             if (source && token && target) {
                 const sourceName = source.tokenmap_name;
                 const targetName = target.tokenmap_name;
-                const sourceId = token_maps.idKeys[sourceName];
-                const token_records = token_maps.tokens?.filter((item) => {
-                    return item[sourceName][sourceId] === token.id;
+                const sourceId = tokenMap.getIdKey(sourceName);
+                const token_records = tokenMap.search(sourceName, {
+                    [sourceId]: token.id
                 });
                 if (token_records) {
                     if (targetName === "ergo") {
@@ -300,15 +295,12 @@ export default function Bridge() {
             });
             if (form.data.token.id !== feeToken) {
                 const chain = form.data.source.id === "ERG" ? "ergo" : "cardano";
-                const filteredTokens = filterTokenMap(
-                    (item) => item.cardano.fingerprint === form.data.token.id
-                );
-                const tokenId =
-                    form.data.source.id === "ERG"
-                        ? form.data.token.id
-                        : filteredTokens[0].ergo.tokenId;
+                const idKey = tokenMap.getIdKey(chain);
+                const tokens = tokenMap.search(chain, {
+                    [idKey]: form.data.token.id
+                });
 
-                caclucateFees(tokenId, chain);
+                caclucateFees(tokens[0].ergo.tokenId, chain);
                 return;
             } else {
                 setReceivingAmount(
