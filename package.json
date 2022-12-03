@@ -10,7 +10,8 @@
     "@mui/icons-material": "^5.6.2",
     "@mui/lab": "^5.0.0-alpha.103",
     "@mui/material": "^5.7.0",
-    "@rosen-bridge/minimum-fee-browser": "^0.1.1",
+    "@rosen-bridge/minimum-fee-browser": "^0.1.2",
+    "@rosen-bridge/tokens": "^0.1.8",
     "@testing-library/jest-dom": "^5.16.4",
     "@testing-library/react": "^13.2.0",
     "@testing-library/user-event": "^13.5.0",
@@ -37,7 +38,8 @@
     "build": "npm run prebuild && node ./scripts/build.js",
     "test": "react-scripts test",
     "eject": "react-scripts eject",
-    "fix": "prettier src --write"
+    "fix": "prettier src --write",
+    "prepare": "husky install"
   },
   "eslintConfig": {
     "extends": [
@@ -56,5 +58,8 @@
       "last 1 firefox version",
       "last 1 safari version"
     ]
+  },
+  "devDependencies": {
+    "husky": "^8.0.2"
   }
 }

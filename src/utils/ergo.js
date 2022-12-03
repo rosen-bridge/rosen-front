@@ -7,7 +7,15 @@ let ergolib = import("ergo-lib-wasm-browser");
 const minBoxValue = consts.minBoxValue;
 const feeString = consts.ergoFee;
 
-const getChangeBox = async (height, inputs, changeAddress, tokenId, tokenAmount) => {
+const getChangeBox = async (
+    height,
+    inputs,
+    changeAddress,
+    tokenId,
+    tokenAmount,
+    rosenValue,
+    feeValue
+) => {
     const wasm = await ergolib;
     let sumValue = wasm.I64.from_str("0");
     const tokenMap = new Map();
@@ -24,15 +32,18 @@ const getChangeBox = async (height, inputs, changeAddress, tokenId, tokenAmount)
             }
         }
     }
-    const otherBoxesValue = -1 * (Number(minBoxValue) + Number(feeString));
+
+    const otherBoxesValue = -1 * (Number(rosenValue) + Number(feeValue));
     sumValue = sumValue.checked_add(wasm.I64.from_str(otherBoxesValue.toString()));
-    if (tokenMap.get(tokenId).to_str() === tokenAmount.toString()) {
-        tokenMap.delete(tokenId);
-    } else {
-        tokenMap.set(
-            tokenId,
-            tokenMap.get(tokenId).checked_add(wasm.I64.from_str((-1 * tokenAmount).toString()))
-        );
+    if (tokenMap.get(tokenId)) {
+        if (tokenMap.get(tokenId).to_str() === tokenAmount.toString()) {
+            tokenMap.delete(tokenId);
+        } else {
+            tokenMap.set(
+                tokenId,
+                tokenMap.get(tokenId).checked_add(wasm.I64.from_str((-1 * tokenAmount).toString()))
+            );
+        }
     }
 
     const changeBox = new wasm.ErgoBoxCandidateBuilder(
@@ -64,10 +75,7 @@ const getRosenBox = async (
         wasm.Contract.pay_to_address(wasm.Address.from_base58(ergoContract["addresses"]["lock"])),
         height
     );
-    rosenBox.add_token(
-        wasm.TokenId.from_str(tokenId),
-        wasm.TokenAmount.from_i64(wasm.I64.from_str(amount.toString()))
-    );
+
     rosenBox.set_register_value(
         wasm.NonMandatoryRegisterId.R4,
         wasm.Constant.from_coll_coll_byte([
@@ -78,6 +86,13 @@ const getRosenBox = async (
             string2uint8(fromAddress.toString())
         ])
     );
+
+    if (tokenId !== consts.ergTokenName) {
+        rosenBox.add_token(
+            wasm.TokenId.from_str(tokenId),
+            wasm.TokenAmount.from_i64(wasm.I64.from_str(amount.toString()))
+        );
+    }
     return rosenBox.build();
 };
 
@@ -103,7 +118,10 @@ export const generateTX = async (
 ) => {
     const wasm = await ergolib;
     const height = await ergoExplorer.getHeight();
-    const rosenValue = wasm.BoxValue.from_i64(wasm.I64.from_str(minBoxValue));
+    const rosenValue =
+        tokenId === consts.ergTokenName
+            ? wasm.BoxValue.from_i64(wasm.I64.from_str(amount.toString()))
+            : wasm.BoxValue.from_i64(wasm.I64.from_str(minBoxValue));
     const rosenBox = await getRosenBox(
         height,
         rosenValue,
@@ -115,7 +133,15 @@ export const generateTX = async (
         networkFee,
         bridgeFee
     );
-    const changeBox = await getChangeBox(height, inputs, changeAddress, tokenId, amount);
+    const changeBox = await getChangeBox(
+        height,
+        inputs,
+        changeAddress,
+        tokenId,
+        amount,
+        rosenValue.as_i64().to_str(),
+        feeString
+    );
     const feeBox = wasm.ErgoBoxCandidate.new_miner_fee_box(
         wasm.BoxValue.from_i64(wasm.I64.from_str(feeString)),
         height

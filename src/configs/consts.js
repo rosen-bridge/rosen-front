@@ -13,5 +13,8 @@ export const consts = {
     feeConfigErgoTreeTemplateHash:
         "8adf66a6b084fa9da4ec2196af6fa83d498ce5b93a4c6b12d738a0557d71c72f",
     feeRatio: 0.1,
-    nextfeeHeight: 5
+    nextfeeHeight: 5,
+    ergTokenName: "erg",
+    ergTokenNameEIP12: "ERG",
+    cardanoTokenName: "lovelace"
 };

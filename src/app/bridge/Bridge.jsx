@@ -9,7 +9,8 @@ import AlertDialog from "layouts/Dialog";
 import useMediaQuery from "@mui/material/useMediaQuery";
 import { useTheme } from "@mui/material/styles";
 import { Nautilus, Nami } from "../../wallets";
-import token_maps from "../../configs/tokenmap.json";
+import tokenMapFile from "../../configs/tokenmap.json";
+import { TokenMap } from "@rosen-bridge/tokens";
 import ergoContract from "../../configs/contract-ergo.json";
 import cardanoConract from "../../configs/contract-cardano.json";
 import {
@@ -17,7 +18,9 @@ import {
     connectToWallet,
     transfer,
     isValidAddressErgo,
-    isValidAddressCardano
+    isValidAddressCardano,
+    countDecimals,
+    fixedDecimals
 } from "../../utils";
 import { consts } from "configs";
 import { BridgeMinimumFee } from "@rosen-bridge/minimum-fee-browser";
@@ -38,6 +41,7 @@ const cardanoMinfee = new BridgeMinimumFee(
     cardanoConract.tokens.RSNRatioNFT
 );
 const minFee = [ergoMinfee, cardanoMinfee];
+const tokenMap = new TokenMap(tokenMapFile);
 
 export function ValueDisplay({ title, value, unit, color = "primary" }) {
     return (
@@ -71,13 +75,15 @@ export default function Bridge() {
     const [dialogTitle, setDialogTitle] = useState("");
     const [dialogText, setDialogText] = useState("");
     const [dialogProceedText, setDialogProceedText] = useState("");
-    const [bridgeFee, setBridgeFee] = useState(0);
-    const [networkFee, setNetworkFee] = useState(0);
+    const [bridgeFee, setBridgeFee] = useState(-1);
+    const [networkFee, setNetworkFee] = useState(-1);
     const [fetchedFees, setFetchedFees] = useState({
-        bridgeFee: 0,
-        networkFee: 0
+        bridgeFee: -1,
+        networkFee: -1
     });
     const [feeToken, setFeeToken] = useState("");
+    const [receivingAmount, setReceivingAmount] = useState(0);
+    const [amount, setAmount] = useState(0);
 
     const closeDialog = () => {
         setDialogTitle("");
@@ -120,59 +126,65 @@ export default function Bridge() {
     ];
 
     const resetAll = (resetSource = false) => {
-        if(resetSource) {
-          form.data.source = {};
+        if (resetSource) {
+            form.data.source = {};
         }
         form.data.token = {};
         form.data.target = {};
         form.data.targetToken = {};
-        form.data.amount = "";
+        setAmount(0);
         form.data.address = "";
         setTargetTokens([]);
         setWalletConnected(false);
         setBalance(0);
-        setBridgeFee(0);
-        setNetworkFee(0);
+        setBridgeFee(-1);
+        setNetworkFee(-1);
         setFetchedFees({
-            bridgeFee: 0,
-            networkFee: 0
+            bridgeFee: -1,
+            networkFee: -1
         });
         setFeeToken("");
-    };
-
-    const mapTokenMap = (cb) => {
-        return token_maps.tokens?.map(cb);
+        setReceivingAmount(0);
     };
 
     const updateFees = (amount, fees) => {
+        if (amount < 0) {
+            setBridgeFee(-1);
+            setReceivingAmount(0);
+            setNetworkFee(-1);
+            return;
+        }
         setNetworkFee(fees.networkFee);
-        setBridgeFee(Math.max(fees.bridgeFee, Math.ceil(amount * consts.feeRatio)));
+        const bridgeFee = Math.max(fees.bridgeFee, Math.ceil(amount * consts.feeRatio));
+        setBridgeFee(bridgeFee);
+        const paymentAmount = amount * Math.pow(10, form.data["token"].decimals);
+        setReceivingAmount(paymentAmount - (fees.networkFee + bridgeFee));
     };
 
     useEffect(() => {
         const { data } = form;
         if (!data["source"]) {
+            const tokens = tokenMapFile.tokens;
             setErgoTokens(
-                mapTokenMap((item) => {
+                tokens.map((item) => {
                     const ergoItem = item.ergo;
                     return {
                         id: ergoItem.tokenId,
                         label: ergoItem.tokenName,
                         icon: "ERG.svg",
-                        min: 1,
                         decimals: ergoItem.decimals || 0
                     };
                 })
             );
             setCardanoTokens(
-                mapTokenMap((item) => {
+                tokens.map((item) => {
                     const cardanoItem = item.cardano;
                     return {
                         id: cardanoItem.fingerprint,
                         label: hex2ascii(cardanoItem.assetName),
                         policyId: cardanoItem.policyId,
                         icon: "ADA.svg",
-                        min: 1
+                        decimals: cardanoItem.fingerprint === consts.cardanoTokenName ? 6 : 0
                     };
                 })
             );
@@ -197,9 +209,9 @@ export default function Bridge() {
             if (source && token && target) {
                 const sourceName = source.tokenmap_name;
                 const targetName = target.tokenmap_name;
-                const sourceId = token_maps.idKeys[sourceName];
-                const token_records = token_maps.tokens?.filter((item) => {
-                    return item[sourceName][sourceId] === token.id;
+                const sourceId = tokenMap.getIdKey(sourceName);
+                const token_records = tokenMap.search(sourceName, {
+                    [sourceId]: token.id
                 });
                 if (token_records) {
                     if (targetName === "ergo") {
@@ -208,7 +220,7 @@ export default function Bridge() {
                             id: ergoItem.tokenId,
                             label: ergoItem.tokenName,
                             icon: "ERG.svg",
-                            min: 1
+                            decimals: ergoItem.decimals || 0
                         };
                         setTargetTokens([ergoToken]);
                         form.data.targetToken = ergoToken;
@@ -219,7 +231,7 @@ export default function Bridge() {
                             label: hex2ascii(cardanoItem.assetName),
                             policyId: cardanoItem.policyId,
                             icon: "ADA.svg",
-                            min: 1
+                            decimals: cardanoItem.fingerprint === consts.cardanoTokenName ? 6 : 0
                         };
                         setTargetTokens([cardanoToken]);
                         form.data.targetToken = cardanoToken;
@@ -232,61 +244,76 @@ export default function Bridge() {
     useEffect(() => {
         const { data } = form;
         if (data["token"] && Object.keys(data["token"]).length > 0 && walletConnected) {
-            if (sourceChain === "ERG") {
-                nautilus
-                    .getBalance(data.token?.id)
-                    .then((balance) => setBalance(balance / Math.pow(10, data.token?.decimals)));
-            } else {
-                nami.getBalance(data.token?.id).then((balance) => setBalance(balance));
-            }
+            const wallet = sourceChain === "ERG" ? nautilus : nami;
+            wallet.getBalance(data.token?.id).then((balance) => setBalance(balance));
         }
     }, [form.data["token"], walletConnected]);
 
     useEffect(() => {
         async function caclucateFees(tokenId, chain) {
-            const height =
-                chain === "ergo"
-                    ? await ergoExplorer.getHeight()
-                    : await cardanoExplorer.getHeight();
-            const minFeeIndex = chain === "ergo" ? 0 : 1;
-            const fees = await minFee[minFeeIndex].getFee(tokenId, chain, height);
-            const nextFees = await minFee[minFeeIndex].getFee(
-                tokenId,
-                chain,
-                height + consts.nextfeeHeight
-            );
-            if (fees.bridgeFee !== nextFees.bridgeFee || fees.networkFee !== nextFees.networkFee) {
-                showAlert(
-                    "Warning",
-                    "Fees might change depending on the height of mining the transactions.",
-                    ""
-                );
-            }
-            const localMinFees = {
-                networkFee: Number(fees.networkFee.toString()),
-                bridgeFee: Number(fees.bridgeFee.toString())
+            // Hardcoded for testing
+            let localMinFees = {
+                networkFee: 100000,
+                bridgeFee: 200000
             };
-            setFetchedFees(localMinFees);
-            setFeeToken(form.data.token.id);
-            updateFees(0, localMinFees);
+            if (tokenId === "erg") {
+                localMinFees.networkFee = 100000000;
+                localMinFees.bridgeFee = 200000000;
+            }
+            try {
+                const height =
+                    chain === "ergo"
+                        ? await ergoExplorer.getHeight()
+                        : await cardanoExplorer.getHeight();
+                const minFeeIndex = chain === "ergo" ? 0 : 1;
+                const fees = await minFee[minFeeIndex].getFee(tokenId, chain, height);
+                const nextFees = await minFee[minFeeIndex].getFee(
+                    tokenId,
+                    chain,
+                    height + consts.nextfeeHeight
+                );
+                if (
+                    fees.bridgeFee !== nextFees.bridgeFee ||
+                    fees.networkFee !== nextFees.networkFee
+                ) {
+                    showAlert(
+                        "Warning",
+                        "Fees might change depending on the height of mining the transactions.",
+                        ""
+                    );
+                }
+                localMinFees = {
+                    networkFee: Number(fees.networkFee.toString()),
+                    bridgeFee: Number(fees.bridgeFee.toString())
+                };
+            } catch (e) {
+                showAlert("Error", "Failed to fetch fees", "");
+            } finally {
+                setFetchedFees(localMinFees);
+                setFeeToken(form.data.token.id);
+                updateFees(amount, localMinFees);
+            }
         }
         if (form.data.token && Object.keys(form.data.token).length > 0) {
+            updateFees(-1, {});
             if (form.data.token.id !== feeToken) {
                 const chain = form.data.source.id === "ERG" ? "ergo" : "cardano";
-                const mappedTokens = mapTokenMap((item) => {
-                    if (item.cardano.fingerprint === form.data.token.id) return item.ergo;
+                const idKey = tokenMap.getIdKey(chain);
+                const tokens = tokenMap.search(chain, {
+                    [idKey]: form.data.token.id
                 });
-                const tokenId =
-                    form.data.source.id === "ERG" ? form.data.token.id : mappedTokens[0].tokenId;
 
-                caclucateFees(tokenId, chain);
+                caclucateFees(tokens[0].ergo.tokenId, chain);
                 return;
+            } else {
+                const paymentAmount = amount * Math.pow(10, form.data["token"].decimals);
+                setReceivingAmount(paymentAmount - (networkFee + bridgeFee));
             }
         }
-        if (form.data.amount && form.data?.token?.id === feeToken) {
-            updateFees(form.data.amount, fetchedFees);
+        if (amount > 0 && form.data?.token?.id === feeToken) {
+            updateFees(amount, fetchedFees);
         }
-    }, [form.data["amount"], form.data["token"]]);
+    }, [amount, form.data["token"]]);
 
     async function handle_submit() {
         if (!walletConnected) {
@@ -314,7 +341,7 @@ export default function Bridge() {
             const token = form.data["token"];
             const target = form.data["target"];
             const targetToken = form.data["targetToken"];
-            let amount = form.data["amount"];
+            const paymentAmount = amount * Math.pow(10, form.data["token"].decimals);
             const address = form.data["address"];
             if (
                 !token ||
@@ -323,7 +350,6 @@ export default function Bridge() {
                 Object.keys(token).length === 0 ||
                 Object.keys(target).length === 0 ||
                 Object.keys(targetToken).length === 0 ||
-                !amount ||
                 !address
             ) {
                 setDialogTitle("Error");
@@ -332,17 +358,12 @@ export default function Bridge() {
                 setTransfering(false);
                 return;
             }
-            if(!Number.isInteger(form.data["amount"])) {
-                showAlert("Error", "Only integer amounts are valid.", "");
-                setTransfering(false);
-                return;
-            }
-            if (form.data["amount"] - (bridgeFee + networkFee) <= 0) {
+            if (paymentAmount - (bridgeFee + networkFee) <= 0) {
                 showAlert("Error", "The transfer is not possible since the amount is too low.", "");
                 setTransfering(false);
                 return;
             }
-            if (amount > balance) {
+            if (paymentAmount > balance) {
                 showAlert("Error", "Insufficient token balance.", "");
                 setTransfering(false);
                 return;
@@ -357,11 +378,10 @@ export default function Bridge() {
             try {
                 let txId = "";
                 if (sourceChain === "ERG") {
-                    amount = amount * Math.pow(10, token.decimals);
                     txId = await transfer(
                         sourceChain,
                         nautilus,
-                        amount,
+                        paymentAmount,
                         token.id,
                         target.id,
                         address,
@@ -372,7 +392,7 @@ export default function Bridge() {
                     txId = await transfer(
                         sourceChain,
                         nami,
-                        amount,
+                        paymentAmount,
                         token.policyId,
                         target.id,
                         address,
@@ -388,6 +408,17 @@ export default function Bridge() {
             } finally {
                 setTransfering(false);
             }
+        }
+    }
+
+    async function handle_amount(e) {
+        const newValue = e.target.value;
+        if (!newValue) {
+            setAmount(0);
+        } else if (countDecimals(newValue) > form.data.token.decimals) {
+            setAmount(fixedDecimals(newValue, form.data.token.decimals));
+        } else {
+            setAmount(newValue);
         }
     }
 
@@ -464,13 +495,17 @@ export default function Bridge() {
                                 }
                                 placeholder="0.00"
                                 helperText={
-                                    form.data.token?.id && bridgeFee + networkFee > 0 &&
-                                    `Minimum ${bridgeFee + networkFee + 1} ${
-                                        form.data.token?.label
-                                    } `
+                                    form.data.token?.id &&
+                                    bridgeFee + networkFee > 0 &&
+                                    `Minimum ${
+                                        (bridgeFee + networkFee) /
+                                        Math.pow(10, form.data.token?.decimals || 0)
+                                    } ${form.data.token?.label} `
                                 }
                                 disabled={feeToken === ""}
                                 form={form}
+                                text={amount}
+                                manualChange={handle_amount}
                                 sx={{ input: { fontSize: "2rem" } }}
                             />
                         </Grid>
@@ -491,25 +526,37 @@ export default function Bridge() {
                     >
                         <ValueDisplay
                             title="Wallet Balance"
-                            value={balance}
+                            value={balance / Math.pow(10, form.data.token?.decimals || 0)}
                             unit={form.data.token?.label || ""}
                         />
                         <ValueDisplay
                             title="Bridge Fee"
-                            value={bridgeFee > 0 ? bridgeFee : "Pending"}
+                            value={
+                                bridgeFee >= 0
+                                    ? bridgeFee / Math.pow(10, form.data.token.decimals)
+                                    : "Pending"
+                            }
                             unit={form.data.token?.label || ""}
                         />
                         <ValueDisplay
                             title="Network Fee"
-                            value={networkFee > 0 ? networkFee : "Pending"}
+                            value={
+                                networkFee >= 0
+                                    ? networkFee / Math.pow(10, form.data.token.decimals)
+                                    : "Pending"
+                            }
                             unit={form.data.token?.label || ""}
                         />
                         <Divider />
                         <ValueDisplay
                             title="You will receive"
                             value={
-                                (form.data["amount"] - (bridgeFee + networkFee) || 0) >= 0
-                                    ? form.data["amount"] - (bridgeFee + networkFee) || 0
+                                receivingAmount >= 0
+                                    ? fixedDecimals(
+                                          receivingAmount /
+                                              Math.pow(10, form.data.targetToken?.decimals || 0),
+                                          form.data.targetToken?.decimals || 0
+                                      )
                                     : "-"
                             }
                             unit={form.data.targetToken?.label || ""}
