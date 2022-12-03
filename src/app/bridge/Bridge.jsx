@@ -148,18 +148,23 @@ export default function Bridge() {
     };
 
     const updateFees = (amount, fees) => {
+        if (amount < 0) {
+            setBridgeFee(-1);
+            setReceivingAmount(0);
+            setNetworkFee(-1);
+            return;
+        }
         setNetworkFee(fees.networkFee);
         const bridgeFee = Math.max(fees.bridgeFee, Math.ceil(amount * consts.feeRatio));
         setBridgeFee(bridgeFee);
-        setReceivingAmount(
-            amount - (fees.networkFee + bridgeFee) / Math.pow(10, form.data.token.decimals)
-        );
+        const paymentAmount = amount * Math.pow(10, form.data["token"].decimals);
+        setReceivingAmount(paymentAmount - (fees.networkFee + bridgeFee));
     };
 
     useEffect(() => {
         const { data } = form;
         if (!data["source"]) {
-            const tokens = tokenMap.search("ergo", {});
+            const tokens = tokenMapFile.tokens;
             setErgoTokens(
                 tokens.map((item) => {
                     const ergoItem = item.ergo;
@@ -179,7 +184,7 @@ export default function Bridge() {
                         label: hex2ascii(cardanoItem.assetName),
                         policyId: cardanoItem.policyId,
                         icon: "ADA.svg",
-                        decimals: cardanoItem.fingerprint === "lovelace" ? 6 : 0
+                        decimals: cardanoItem.fingerprint === consts.cardanoTokenName ? 6 : 0
                     };
                 })
             );
@@ -226,7 +231,7 @@ export default function Bridge() {
                             label: hex2ascii(cardanoItem.assetName),
                             policyId: cardanoItem.policyId,
                             icon: "ADA.svg",
-                            decimals: cardanoItem.fingerprint === "lovelace" ? 6 : 0
+                            decimals: cardanoItem.fingerprint === consts.cardanoTokenName ? 6 : 0
                         };
                         setTargetTokens([cardanoToken]);
                         form.data.targetToken = cardanoToken;
@@ -290,10 +295,7 @@ export default function Bridge() {
             }
         }
         if (form.data.token && Object.keys(form.data.token).length > 0) {
-            updateFees(0, {
-                networkFee: 0,
-                bridgeFee: 0
-            });
+            updateFees(-1, {});
             if (form.data.token.id !== feeToken) {
                 const chain = form.data.source.id === "ERG" ? "ergo" : "cardano";
                 const idKey = tokenMap.getIdKey(chain);
@@ -304,9 +306,8 @@ export default function Bridge() {
                 caclucateFees(tokens[0].ergo.tokenId, chain);
                 return;
             } else {
-                setReceivingAmount(
-                    amount - (networkFee + bridgeFee) / Math.pow(10, form.data.token.decimals)
-                );
+                const paymentAmount = amount * Math.pow(10, form.data["token"].decimals);
+                setReceivingAmount(paymentAmount - (networkFee + bridgeFee));
             }
         }
         if (amount > 0 && form.data?.token?.id === feeToken) {

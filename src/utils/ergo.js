@@ -87,7 +87,7 @@ const getRosenBox = async (
         ])
     );
 
-    if (tokenId !== "erg") {
+    if (tokenId !== consts.ergTokenName) {
         rosenBox.add_token(
             wasm.TokenId.from_str(tokenId),
             wasm.TokenAmount.from_i64(wasm.I64.from_str(amount.toString()))
@@ -119,7 +119,7 @@ export const generateTX = async (
     const wasm = await ergolib;
     const height = await ergoExplorer.getHeight();
     const rosenValue =
-        tokenId === "erg"
+        tokenId === consts.ergTokenName
             ? wasm.BoxValue.from_i64(wasm.I64.from_str(amount.toString()))
             : wasm.BoxValue.from_i64(wasm.I64.from_str(minBoxValue));
     const rosenBox = await getRosenBox(
