@@ -38,6 +38,7 @@ export default function InputText({
     helperText,
     text,
     manualChange,
+    onHelperClick,
     ...restProps
 }) {
     const value = text || form.data[name] || "";
@@ -75,6 +76,9 @@ export default function InputText({
                     ...(endAdornment && {
                         endAdornment: <InputAdornment position="end">{endAdornment}</InputAdornment>
                     })
+                }}
+                FormHelperTextProps={{
+                    onClick: onHelperClick
                 }}
             />
         </Box>
