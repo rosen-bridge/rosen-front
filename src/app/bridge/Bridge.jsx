@@ -493,12 +493,12 @@ export default function Bridge() {
                                         : "Amount"
                                 }
                                 placeholder={
-                                    form.data.token?.id &&
-                                    bridgeFee + networkFee > 0 &&
+                                    (form.data.token?.id &&
+                                    bridgeFee + networkFee > 0) ?
                                     `Minimum ${
                                         (bridgeFee + networkFee) /
                                         Math.pow(10, form.data.token?.decimals || 0)
-                                    } ${form.data.token?.label} `
+                                    } ${form.data.token?.label} ` : ""
                                 }
                                 helperText={
                                     walletConnected && form.data.token?.id
@@ -511,18 +511,19 @@ export default function Bridge() {
                                 form={form}
                                 text={amount}
                                 manualChange={handle_amount}
-                                onHelperClick={() => setAmount(balance / Math.pow(10, form.data.token?.decimals || 0))}
+                                onHelperClick={() =>
+                                    setAmount(
+                                        balance / Math.pow(10, form.data.token?.decimals || 0)
+                                    )
+                                }
                                 sx={{ input: { fontSize: "1rem" } }}
                             />
                         </Grid>
                         <Grid item xs={12}>
                             <InputText
                                 name="address"
-                                label="Destination Address"
+                                label={`${form.data.target?.id ? form.data.target.label : "Destination"} Address`}
                                 form={form}
-                                placeholder={
-                                    form.data.target?.id ? `${form.data.target.label} Address` : ""
-                                }
                             />
                         </Grid>
                     </Grid>
