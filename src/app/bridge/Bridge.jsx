@@ -421,7 +421,6 @@ export default function Bridge() {
             setAmount(newValue);
         }
     }
-
     return (
         <PageBox
             title="Rosen Bridge - soft launch"
@@ -478,7 +477,7 @@ export default function Bridge() {
                                 name="targetToken"
                                 label="To Token"
                                 options={targetTokens}
-                                disabled={!form.data["target"]?.id}
+                                disabled={true}
                                 form={form}
                             />
                         </Grid>
@@ -493,24 +492,41 @@ export default function Bridge() {
                                         ? "Calculating Fees"
                                         : "Amount"
                                 }
-                                placeholder="0.00"
+                                placeholder={
+                                    form.data.token?.id && bridgeFee + networkFee > 0
+                                        ? `Minimum ${
+                                              (bridgeFee + networkFee) /
+                                              Math.pow(10, form.data.token?.decimals || 0)
+                                          } ${form.data.token?.label} `
+                                        : ""
+                                }
                                 helperText={
-                                    form.data.token?.id &&
-                                    bridgeFee + networkFee > 0 &&
-                                    `Minimum ${
-                                        (bridgeFee + networkFee) /
-                                        Math.pow(10, form.data.token?.decimals || 0)
-                                    } ${form.data.token?.label} `
+                                    walletConnected && form.data.token?.id
+                                        ? `Balance: ${
+                                              balance / Math.pow(10, form.data.token?.decimals || 0)
+                                          } ${form.data.token.label}`
+                                        : ""
                                 }
                                 disabled={feeToken === ""}
                                 form={form}
                                 text={amount}
                                 manualChange={handle_amount}
-                                sx={{ input: { fontSize: "2rem" } }}
+                                onHelperClick={() =>
+                                    setAmount(
+                                        balance / Math.pow(10, form.data.token?.decimals || 0)
+                                    )
+                                }
+                                sx={{ input: { fontSize: "1rem" } }}
                             />
                         </Grid>
                         <Grid item xs={12}>
-                            <InputText name="address" label="Address" form={form} />
+                            <InputText
+                                name="address"
+                                label={`${
+                                    form.data.target?.id ? form.data.target.label : "Destination"
+                                } Address`}
+                                form={form}
+                            />
                         </Grid>
                     </Grid>
 
@@ -525,8 +541,8 @@ export default function Bridge() {
                         }}
                     >
                         <ValueDisplay
-                            title="Wallet Balance"
-                            value={balance / Math.pow(10, form.data.token?.decimals || 0)}
+                            title="Amount"
+                            value={amount}
                             unit={form.data.token?.label || ""}
                         />
                         <ValueDisplay
