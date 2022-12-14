@@ -32,12 +32,10 @@ const nautilus = new Nautilus();
 const nami = new Nami();
 const ergoMinfee = new BridgeMinimumFee(
     explorerConfig.ergo_explorer.base_url,
-    consts.feeConfigErgoTreeTemplateHash,
     ergoContract.tokens.RSNRatioNFT
 );
 const cardanoMinfee = new BridgeMinimumFee(
     explorerConfig.ergo_explorer.base_url,
-    consts.feeConfigErgoTreeTemplateHash,
     cardanoConract.tokens.RSNRatioNFT
 );
 const minFee = [ergoMinfee, cardanoMinfee];
