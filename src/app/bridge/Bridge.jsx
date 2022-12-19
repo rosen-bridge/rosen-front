@@ -146,6 +146,7 @@ export default function Bridge() {
     };
 
     const updateFees = (amount, fees) => {
+        let paymentAmount = amount * Math.pow(10, form.data["token"].decimals || 0);
         if (amount < 0) {
             setBridgeFee(-1);
             setReceivingAmount(0);
@@ -153,9 +154,8 @@ export default function Bridge() {
             return;
         }
         setNetworkFee(fees.networkFee);
-        const bridgeFee = Math.max(fees.bridgeFee, Math.ceil(amount * consts.feeRatio));
+        const bridgeFee = Math.max(fees.bridgeFee, Math.ceil(paymentAmount * consts.feeRatio));
         setBridgeFee(bridgeFee);
-        const paymentAmount = amount * Math.pow(10, form.data["token"].decimals);
         setReceivingAmount(paymentAmount - (fees.networkFee + bridgeFee));
     };
 
@@ -249,15 +249,10 @@ export default function Bridge() {
 
     useEffect(() => {
         async function caclucateFees(tokenId, chain) {
-            // Hardcoded for testing
             let localMinFees = {
-                networkFee: 100000,
-                bridgeFee: 200000
+                networkFee: -1,
+                bridgeFee: -1
             };
-            if (tokenId === "erg") {
-                localMinFees.networkFee = 100000000;
-                localMinFees.bridgeFee = 200000000;
-            }
             try {
                 const height =
                     chain === "ergo"
