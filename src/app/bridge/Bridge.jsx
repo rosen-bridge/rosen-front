@@ -424,6 +424,7 @@ export default function Bridge() {
             title="Rosen Bridge - soft launch"
             subtitle="Testing Rosen Bridge on Ergo and Cardano main-nets using test tokens"
             maxWidth="md"
+            header={<b><center>ATTENTION: The bridge is in testing mode. Please do not use the bridge, or you will likely lose your money.</center></b>}
         >
             <AlertDialog
                 open={openDialog}
