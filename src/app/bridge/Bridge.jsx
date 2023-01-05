@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Box, Card, Divider, Grid, Stack, Typography } from "@mui/material";
+import { Box, Card, Divider, Grid, Stack, Typography, Snackbar, Alert } from "@mui/material";
 import { LoadingButton } from "@mui/lab";
 import PageBox from "layouts/PageBox";
 import InputSelect from "components/InputSelect";
@@ -82,12 +82,19 @@ export default function Bridge() {
     const [feeToken, setFeeToken] = useState("");
     const [receivingAmount, setReceivingAmount] = useState(0);
     const [amount, setAmount] = useState(0);
+    const [openSnack, setOpenSnack] = useState(false);
+    const [snackSeverity, setSnackSeverity] = useState("info");
+    const [snackMessage, setSnackMessage] = useState("");
 
     const closeDialog = () => {
         setDialogTitle("");
         setDialogText("");
         setDialogProceedText("");
         setOpendialog(false);
+    };
+
+    const closeSnack = () => {
+        setOpenSnack(false);
     };
 
     const proceedDialog = () => {
@@ -106,6 +113,18 @@ export default function Bridge() {
         setDialogText(text);
         setDialogProceedText(proceedText);
         setOpendialog(true);
+    };
+
+    const showSnack = (messgae, severity = "info", duration = 2000, cb) => {
+        setSnackMessage(messgae);
+        setSnackSeverity(severity);
+        setOpenSnack(true);
+        setTimeout(() => {
+            setOpenSnack(false);
+            if (cb) {
+                cb();
+            }
+        }, duration);
     };
 
     const updateStatus = async () => {
@@ -280,7 +299,12 @@ export default function Bridge() {
                     bridgeFee: Number(fees.bridgeFee.toString())
                 };
             } catch (e) {
-                showAlert("Error", "Failed to fetch fees", "");
+                showSnack(
+                    "Failed to fetch fees! Retrying...",
+                    "error",
+                    5000,
+                    caclucateFees.bind(null, tokenId, chain)
+                );
             } finally {
                 setFetchedFees(localMinFees);
                 setFeeToken(form.data.token.id);
@@ -368,6 +392,10 @@ export default function Bridge() {
                 showAlert("Error", "Invalid target address.", "");
                 return setTransfering(false);
             }
+            if (bridgeFee <= 0 || networkFee <= 0) {
+                showAlert("Error", "Fees are not fetched yet.", "");
+                return setTransfering(false);
+            }
             try {
                 let txId = "";
                 if (sourceChain === "ERG") {
@@ -420,9 +448,10 @@ export default function Bridge() {
             subtitle="Testing Rosen Bridge on Ergo and Cardano main-nets using test tokens"
             maxWidth="md"
             header={
-                <b style={{color: "#FBC02D"}}>
+                <b style={{ color: "#FBC02D" }}>
                     <center>
-                        ATTENTION: The bridge is in testing mode. Please do not use it, or you will definitely lose your money.
+                        ATTENTION: The bridge is in testing mode. Please do not use it, or you will
+                        definitely lose your money.
                     </center>
                 </b>
             }
@@ -594,6 +623,11 @@ export default function Bridge() {
                     </Stack>
                 </Stack>
             </Card>
+            <Snackbar open={openSnack} anchorOrigin={{ horizontal: "center", vertical: "bottom" }}>
+                <Alert onClose={closeSnack} severity={snackSeverity} sx={{ width: "100%" }}>
+                    {snackMessage}
+                </Alert>
+            </Snackbar>
         </PageBox>
     );
 }
