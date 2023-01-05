@@ -327,7 +327,7 @@ export default function Bridge() {
                 setReceivingAmount(paymentAmount - (networkFee + bridgeFee));
             }
         }
-        if (amount > 0 && form.data?.token?.id === feeToken) {
+        if (amount >= 0 && form.data?.token?.id === feeToken) {
             updateFees(amount, fetchedFees);
         }
     }, [amount, form.data["token"]]);
