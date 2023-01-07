@@ -14,5 +14,6 @@ export const consts = {
     nextfeeHeight: 5,
     ergTokenName: "erg",
     ergTokenNameEIP12: "ERG",
-    cardanoTokenName: "lovelace"
+    cardanoTokenName: "lovelace",
+    minBoxADA: "1000000"
 };
