@@ -66,12 +66,12 @@ export const items = [
         path: "/bridge",
         label: "Bridge",
         icon: UndoIcon
+    },
+    {
+        path: "/assets",
+        label: "Assets",
+        icon: HomeRepairServiceIcon
     }
-    // {
-    //     path: "/assets",
-    //     label: "Assets",
-    //     icon: HomeRepairServiceIcon
-    // },
     // {
     //     path: "/transactions",
     //     label: "Transactions",

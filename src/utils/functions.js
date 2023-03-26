@@ -66,3 +66,14 @@ export function countDecimals(number) {
     if (Math.floor(number) === number) return 0;
     return number.toString().split(".")[1].length || 0;
 }
+
+export function shortenString(str) {
+    if (str.length <= 20) {
+        return str;
+    }
+
+    const firstChars = str.substring(0, 10);
+    const lastChars = str.substring(str.length - 10);
+
+    return `${firstChars}...${lastChars}`;
+}
