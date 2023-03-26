@@ -46,7 +46,7 @@ export default function PageBox({
                         </Typography>
                     )}
                     {header}
-                    <div style={{ padding: "1em" }}></div>
+                    <div style={{ padding: "0.5em" }}></div>
                 </Container>
             </HeaderBox>
             <Container maxWidth={maxWidth} sx={{ pb: 5, py: indent ? 0 : 5, mt: `-${indent}px` }}>
