@@ -1,6 +1,5 @@
 import React from "react";
 import { Box, Button } from "@mui/material";
-import DiamondRoundedIcon from "@mui/icons-material/DiamondRounded";
 import AppNav from "./AppNav";
 import Brightness7Icon from "@mui/icons-material/Brightness7";
 import Brightness4Icon from "@mui/icons-material/Brightness4";
@@ -61,8 +60,11 @@ export default function DesktopLayout({ toggle_mode }) {
         <RootBox>
             <SideBox>
                 <Box textAlign="center">
-                    <DiamondRoundedIcon color="secondary" fontSize="large" />
-                    <Brand>Rosen Bridge</Brand>
+                    <img
+                        src={`/static/images/Rosen.png`}
+                        alt="Rosen"
+                        style={{ width: "5em", height: "auto" }}
+                    />
                 </Box>
                 <AppNav />
                 <Box textAlign="center">

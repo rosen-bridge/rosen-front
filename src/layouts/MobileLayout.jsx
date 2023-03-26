@@ -1,6 +1,5 @@
 import React, { useState } from "react";
 import { Box, Button, SvgIcon } from "@mui/material";
-import DiamondRoundedIcon from "@mui/icons-material/DiamondRounded";
 import { items } from "./AppNav";
 import Brightness7Icon from "@mui/icons-material/Brightness7";
 import Brightness4Icon from "@mui/icons-material/Brightness4";
@@ -110,9 +109,12 @@ export default function MobileLayout({ toggle_mode }) {
 
     return (
         <RootBox>
-            <HeaderBox>
-                <DiamondRoundedIcon color="secondary" fontSize="large" />
-                <Brand>Rosen Bridge</Brand>
+            <HeaderBox style={{ display: "flex", justifyContent: "space-between" }}>
+                <img
+                    src={`/static/images/Rosen2.png`}
+                    alt="Rosen"
+                    style={{ width: "7em", height: "auto" }}
+                />
 
                 <Box textAlign="center">
                     <CircleButton onClick={toggle_mode}>

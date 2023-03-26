@@ -66,7 +66,7 @@ export const items = [
         path: "/bridge",
         label: "Bridge",
         icon: UndoIcon
-    },
+    }
     // {
     //     path: "/assets",
     //     label: "Assets",
@@ -77,11 +77,11 @@ export const items = [
     //     label: "Transactions",
     //     icon: RepeatIcon
     // },
-    {
-        path: "/support",
-        label: "Support",
-        icon: SupportAgentIcon
-    }
+    // {
+    //     path: "/support",
+    //     label: "Support",
+    //     icon: SupportAgentIcon
+    // }
     // {
     //     path: "/dashboard",
     //     label: "Dashboard",

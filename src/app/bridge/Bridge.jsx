@@ -457,16 +457,18 @@ export default function Bridge() {
     }
     return (
         <PageBox
-            title="Rosen Bridge - soft launch"
-            subtitle="Testing Rosen Bridge on Ergo and Cardano main-nets using test tokens"
+            title="Rosen Bridge - Public Test"
+            subtitle="Testing Rosen bridge on Ergo and Cardano main-nets using test tokens"
             maxWidth="md"
             header={
-                <b style={{ color: "#FBC02D" }}>
-                    <center>
-                        ATTENTION: The bridge is in testing mode. Please do not use it, or you will
-                        definitely lose your money.
-                    </center>
-                </b>
+                <p style={{ color: "#FBC02D", textAlign: "justify" }}>
+                    <b>Attention</b>: The bridge is in public test mode. You can use it if you have
+                    test tokens. However you are able to transfer real ERG and ADA, please use these
+                    assets at your own risk and only try with some amounts that you're willing to
+                    lose. At this stage, there is no guarantee of a successful transfer or a refund.
+                    Also, redeem ERG/ADA during the test period, since the bridged assets will be
+                    completely worthless.
+                </p>
             }
         >
             <AlertDialog
@@ -540,7 +542,7 @@ export default function Bridge() {
                                               (bridgeFee + networkFee) /
                                               Math.pow(10, form.data.token?.decimals || 0)
                                           } ${form.data.token?.label} `
-                                        : ""
+                                        : "Amount"
                                 }
                                 helperText={
                                     walletConnected && form.data.token?.id
