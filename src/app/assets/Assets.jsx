@@ -18,6 +18,7 @@ import {
 import { styled } from "@mui/material/styles";
 import NumberFormat from "react-number-format";
 import InfoOutlinedIcon from "@mui/icons-material/InfoOutlined";
+import copy from 'copy-to-clipboard';
 import { shortenString } from "utils";
 import { apiInstance } from "utils/network";
 import { AxiosError } from "axios";
@@ -63,13 +64,7 @@ export default function Assets() {
 
     const handleCopyClick = (event, text) => {
         event.preventDefault();
-        const textArea = document.createElement("textarea");
-        textArea.value = text;
-        document.body.appendChild(textArea);
-        textArea.select();
-        document.execCommand("copy");
-        document.body.removeChild(textArea);
-        showSnack("Copied to clipboard!", "info", 2000);
+        copy(text);
     };
 
     const closeSnack = () => {
@@ -91,7 +86,7 @@ export default function Assets() {
     return (
         <PageBox
             title="Bridge Assets"
-            subtitle="Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. "
+            subtitle="All assets currently locked in Rosen"
             maxWidth="lg"
             indent={58}
             header={
@@ -180,7 +175,7 @@ export default function Assets() {
                             </div>
                         </div>
                     ) : (
-                        <></>
+                        null
                     )}
                 </ContainerBox>
             </Card>
