@@ -1,7 +1,7 @@
 {
     "contratcs": {
         "github_repo": "rosen-bridge/contract",
-        "network_type": "mainnet-alpha-1"
+        "network_type": "softlaunch"
     },
     "ergo_explorer": {
         "base_url": "https://api.ergoplatform.com/api"
