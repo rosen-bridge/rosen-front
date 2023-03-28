@@ -18,7 +18,7 @@ import {
 import { styled } from "@mui/material/styles";
 import NumberFormat from "react-number-format";
 import InfoOutlinedIcon from "@mui/icons-material/InfoOutlined";
-import copy from 'copy-to-clipboard';
+import copy from "copy-to-clipboard";
 import { shortenString } from "utils";
 import { apiInstance } from "utils/network";
 import { AxiosError } from "axios";
@@ -174,9 +174,7 @@ export default function Assets() {
                                 <CircularProgress color="secondary" />
                             </div>
                         </div>
-                    ) : (
-                        null
-                    )}
+                    ) : null}
                 </ContainerBox>
             </Card>
             <Snackbar open={openSnack} anchorOrigin={{ horizontal: "center", vertical: "bottom" }}>
