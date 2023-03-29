@@ -178,6 +178,8 @@ export default function Bridge() {
         setReceivingAmount(paymentAmount - (fees.networkFee + bridgeFee));
     };
 
+    const moveAllBalance = () => setAmount(balance / Math.pow(10, form.data.token?.decimals || 0));
+
     useEffect(() => {
         const { data } = form;
         if (!data["source"]) {
@@ -545,21 +547,31 @@ export default function Bridge() {
                                         : "Amount"
                                 }
                                 helperText={
-                                    walletConnected && form.data.token?.id
-                                        ? `Balance: ${
-                                              balance / Math.pow(10, form.data.token?.decimals || 0)
-                                          } ${form.data.token.label}`
-                                        : ""
+                                    walletConnected && form.data.token?.id ? (
+                                        <div style={{ fontSize: "0.9rem" }}>
+                                            <span style={{ fontWeight: "bold" }}>Max</span>:{" "}
+                                            <span
+                                                onClick={moveAllBalance}
+                                                style={{
+                                                    color: theme.palette.primary.main,
+                                                    cursor: "pointer",
+                                                    textDecoration: "underline",
+                                                    userSelect: "none"
+                                                }}
+                                            >
+                                                {balance /
+                                                    Math.pow(10, form.data.token?.decimals || 0)}
+                                            </span>
+                                            <span> {form.data.token.label}</span>
+                                        </div>
+                                    ) : (
+                                        ""
+                                    )
                                 }
                                 disabled={feeToken === ""}
                                 form={form}
                                 text={amount}
                                 manualChange={handle_amount}
-                                onHelperClick={() =>
-                                    setAmount(
-                                        balance / Math.pow(10, form.data.token?.decimals || 0)
-                                    )
-                                }
                                 sx={{ input: { fontSize: "1rem" } }}
                             />
                         </Grid>
