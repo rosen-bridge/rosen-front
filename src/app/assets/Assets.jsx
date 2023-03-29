@@ -47,8 +47,12 @@ export default function Assets() {
         apiInstance
             .get("/assets/list")
             .then((res) => {
-                setAssets(res.data);
-                setFetched(true);
+                if (typeof res.data === "object") {
+                    setAssets(res.data);
+                    setFetched(true);
+                } else {
+                    showSnack("API Url not set!", "error", 3000);
+                }
             })
             .catch((err) => {
                 if (err instanceof AxiosError) {
@@ -133,7 +137,7 @@ export default function Assets() {
                             </TableRow>
                         </TableHead>
                         <TableBody>
-                            {assets.map((row, index) => (
+                            {assets?.map((row, index) => (
                                 <TableRow key={index}>
                                     <TableCell
                                         style={{ cursor: "pointer" }}
