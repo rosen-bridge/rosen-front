@@ -10,7 +10,7 @@ export const consts = {
     adaMaxTxSize: 16384,
     nautilusUrl: "https://github.com/capt-nemo429/nautilus-wallet#download",
     namiUrl: "https://namiwallet.io/",
-    feeRatio: 0.1,
+    feeRatio: 0.01,
     nextfeeHeight: 5,
     ergTokenName: "erg",
     ergTokenNameEIP12: "ERG",
