@@ -29,9 +29,11 @@ export default function AlertDialog({
                 <DialogContentText id="alert-dialog-description">
                     <span>{text}</span>
                     <br />
-                    <a href={link} target="_blank" rel="noreferrer">
-                        {linkText}
-                    </a>
+                    {link && link.trim() !== "" && (
+                        <a href={link} target="_blank" rel="noreferrer">
+                            {linkText}
+                        </a>
+                    )}
                 </DialogContentText>
             </DialogContent>
             <DialogActions>
