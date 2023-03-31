@@ -96,7 +96,7 @@ const getRosenBox = async (
     return rosenBox.build();
 };
 
-const proxyTx = async (uTx, inputs) => {
+const proxyTx = (uTx, inputs) => {
     const serial = JSON.parse(uTx.to_json());
     serial.inputs = inputs.map((curIn) => {
         return {
