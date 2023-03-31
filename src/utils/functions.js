@@ -1,3 +1,5 @@
+/* global BigInt */
+
 export function hex2ascii(hexx) {
     var hex = hexx.toString(); //force conversion
     var str = "";
@@ -22,14 +24,14 @@ export function string2uint8(str) {
 export function tokenAmountToProxy(tokenAmount) {
     return {
         ...tokenAmount,
-        amount: tokenAmount.amount.toString()
+        amount: BigInt(tokenAmount.amount).toString()
     };
 }
 
 export function unsignedInputToProxy(input) {
     return {
         ...input,
-        value: input.value.toString(),
+        value: BigInt(input.value).toString(),
         assets: input.assets.map((a) => tokenAmountToProxy(a))
     };
 }
@@ -37,7 +39,7 @@ export function unsignedInputToProxy(input) {
 export function ergoBoxCandidateToProxy(box) {
     return {
         ...box,
-        value: box.value.toString(),
+        value: BigInt(box.value).toString(),
         assets: box.assets.map((a) => tokenAmountToProxy(a))
     };
 }
@@ -65,4 +67,15 @@ export function fixedDecimals(number, decimals) {
 export function countDecimals(number) {
     if (Math.floor(number) === number) return 0;
     return number.toString().split(".")[1].length || 0;
+}
+
+export function shortenString(str) {
+    if (str.length <= 20) {
+        return str;
+    }
+
+    const firstChars = str.substring(0, 10);
+    const lastChars = str.substring(str.length - 10);
+
+    return `${firstChars}...${lastChars}`;
 }

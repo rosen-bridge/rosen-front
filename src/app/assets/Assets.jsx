@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import PageBox from "layouts/PageBox";
 import {
     Table,
@@ -10,12 +10,18 @@ import {
     TableBody,
     Box,
     Card,
-    Tooltip
+    Tooltip,
+    Snackbar,
+    Alert,
+    CircularProgress
 } from "@mui/material";
 import { styled } from "@mui/material/styles";
 import NumberFormat from "react-number-format";
 import InfoOutlinedIcon from "@mui/icons-material/InfoOutlined";
-import { assetsData } from "../data";
+import copy from "copy-to-clipboard";
+import { shortenString } from "utils";
+import { apiInstance } from "utils/network";
+import { AxiosError } from "axios";
 
 const ContainerBox = styled(TableContainer)(
     ({ theme }) => `
@@ -29,16 +35,62 @@ const ContainerBox = styled(TableContainer)(
 );
 
 export default function Assets() {
-    const [assets, set_assets] = useState([]);
+    const [assets, setAssets] = useState([]);
+    const [fetched, setFetched] = useState(false);
+    const [openSnack, setOpenSnack] = useState(false);
+    const [snackSeverity, setSnackSeverity] = useState("info");
+    const [snackMessage, setSnackMessage] = useState("");
+    const mountFlag = useRef(true);
 
     useEffect(() => {
-        set_assets(assetsData);
+        if (!mountFlag.current) return;
+        apiInstance
+            .get("/assets/list")
+            .then((res) => {
+                if (typeof res.data === "object") {
+                    setAssets(res.data);
+                    setFetched(true);
+                } else {
+                    showSnack("API Url not set!", "error", 3000);
+                }
+            })
+            .catch((err) => {
+                if (err instanceof AxiosError) {
+                    showSnack(err.message, "error", 3000);
+                } else {
+                    console.error(err);
+                }
+            });
+        return () => {
+            mountFlag.current = false;
+        };
     }, []);
+
+    const handleCopyClick = (event, text) => {
+        event.preventDefault();
+        copy(text);
+    };
+
+    const closeSnack = () => {
+        setOpenSnack(false);
+    };
+
+    const showSnack = (messgae, severity = "info", duration = 2000, cb) => {
+        setSnackMessage(messgae);
+        setSnackSeverity(severity);
+        setOpenSnack(true);
+        setTimeout(() => {
+            setOpenSnack(false);
+            if (cb) {
+                cb();
+            }
+        }, duration);
+    };
 
     return (
         <PageBox
-            title="Bridged Assets"
-            subtitle="Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. "
+            title="Bridge Assets"
+            subtitle="All assets currently locked in Rosen"
             maxWidth="lg"
             indent={58}
             header={
@@ -65,12 +117,7 @@ export default function Assets() {
                     <Typography
                         sx={{ fontSize: "x-large", color: "primary.main", wordBreak: "break-all" }}
                     >
-                        <NumberFormat
-                            value={11925641973211233000000000000}
-                            thousandSeparator
-                            displayType="text"
-                            prefix="$"
-                        />
+                        <NumberFormat value={0} thousandSeparator displayType="text" prefix="$" />
                     </Typography>
                 </Box>
             }
@@ -80,48 +127,65 @@ export default function Assets() {
                     <Table>
                         <TableHead>
                             <TableRow>
-                                <TableCell>Symbol</TableCell>
-                                <TableCell>Name</TableCell>
-                                <TableCell>Type</TableCell>
-                                <TableCell>Origin Address</TableCell>
-                                <TableCell>Mapping Address</TableCell>
-                                <TableCell>Total Locked</TableCell>
-                                <TableCell>Total Locked USD</TableCell>
+                                <TableCell>Asset ID</TableCell>
+                                <TableCell>Asset Name</TableCell>
+                                <TableCell>Asset Type</TableCell>
+                                <TableCell>Network</TableCell>
+                                <TableCell>Bank Address</TableCell>
+                                <TableCell>Locked Amount</TableCell>
+                                <TableCell>Cold Locked</TableCell>
                             </TableRow>
                         </TableHead>
                         <TableBody>
-                            {assets.map((row, index) => (
+                            {assets?.map((row, index) => (
                                 <TableRow key={index}>
-                                    <TableCell>{row.symbol}</TableCell>
-                                    <TableCell>{row.name}</TableCell>
-                                    <TableCell>{row.type}</TableCell>
-                                    <TableCell sx={{ fontFamily: "monospace" }}>
-                                        {row.originAddress}
+                                    <TableCell
+                                        style={{ cursor: "pointer" }}
+                                        onClick={(event) => handleCopyClick(event, row.tokenId)}
+                                    >
+                                        {shortenString(row.tokenId)}
                                     </TableCell>
-                                    <TableCell sx={{ fontFamily: "monospace" }}>
-                                        {row.mappingAddress}
+                                    <TableCell>{row.tokenName}</TableCell>
+                                    <TableCell>{row.tokenType}</TableCell>
+                                    <TableCell>{row.tokenNetwork}</TableCell>
+                                    <TableCell
+                                        style={{ cursor: "pointer" }}
+                                        onClick={(event) => handleCopyClick(event, row.bankAddress)}
+                                    >
+                                        {shortenString(row.bankAddress)}
                                     </TableCell>
                                     <TableCell>
                                         <NumberFormat
-                                            value={row.totalLocked}
+                                            value={row.lockedAmount}
                                             thousandSeparator
                                             displayType="text"
                                         />
                                     </TableCell>
                                     <TableCell>
                                         <NumberFormat
-                                            value={row.totalLockedUsd}
+                                            value={row.coldLockedAmount}
                                             thousandSeparator
                                             displayType="text"
-                                            prefix="$"
                                         />
                                     </TableCell>
                                 </TableRow>
                             ))}
                         </TableBody>
                     </Table>
+                    {!fetched ? (
+                        <div style={{ display: "flex", justifyContent: "center" }}>
+                            <div style={{ padding: "1rem" }}>
+                                <CircularProgress color="secondary" />
+                            </div>
+                        </div>
+                    ) : null}
                 </ContainerBox>
             </Card>
+            <Snackbar open={openSnack} anchorOrigin={{ horizontal: "center", vertical: "bottom" }}>
+                <Alert onClose={closeSnack} severity={snackSeverity} sx={{ width: "100%" }}>
+                    {snackMessage}
+                </Alert>
+            </Snackbar>
         </PageBox>
     );
 }
