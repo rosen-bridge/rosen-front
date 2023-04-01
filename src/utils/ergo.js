@@ -165,7 +165,6 @@ export const generateTX = async (
     unsignedInputArray.forEach((i) => unsignedInputs.add(i));
     const uTx = new wasm.UnsignedTransaction(unsignedInputs, new wasm.DataInputs(), txOutputs);
 
-    console.log(proxyTx(uTx, inputs));
     return proxyTx(uTx, inputs);
 };
 
