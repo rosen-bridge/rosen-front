@@ -20,6 +20,7 @@
     "buffer": "^6.0.3",
     "copy-to-clipboard": "^3.3.3",
     "ergo-lib-wasm-browser": "^0.20.1",
+    "json-bigint": "^1.0.0",
     "node-fetch": "^2.6.1",
     "path-browserify": "^1.0.1",
     "process": "^0.11.10",
