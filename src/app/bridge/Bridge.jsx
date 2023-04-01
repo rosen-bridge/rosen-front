@@ -440,7 +440,8 @@ export default function Bridge() {
                 showAlert("Success", "Transaction submitted successfully. TxId: " + txId, "");
                 resetAll(true);
             } catch (e) {
-                showAlert("Error", "Failed to submit transaction. " + e.message, "");
+                const errorMessage = e.message || e;
+                showAlert("Error", "Failed to submit transaction. " + errorMessage, "");
             } finally {
                 setTransfering(false);
             }
