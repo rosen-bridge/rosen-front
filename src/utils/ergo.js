@@ -1,3 +1,6 @@
+/* global BigInt */
+
+import JSONBigInt from "json-bigint";
 import ergoContract from "../configs/contract-ergo.json";
 import { consts } from "../configs";
 import { string2uint8, unsignedErgoTxToProxy } from "../utils";
@@ -25,10 +28,12 @@ const getChangeBox = async (
             if (tokenMap.has(asset.tokenId)) {
                 tokenMap.set(
                     asset.tokenId,
-                    tokenMap.get(asset.tokenId).checked_add(wasm.I64.from_str(asset.amount))
+                    tokenMap
+                        .get(asset.tokenId)
+                        .checked_add(wasm.I64.from_str(BigInt(asset.amount).toString()))
                 );
             } else {
-                tokenMap.set(asset.tokenId, wasm.I64.from_str(asset.amount.toString()));
+                tokenMap.set(asset.tokenId, wasm.I64.from_str(BigInt(asset.amount).toString()));
             }
         }
     }
@@ -97,7 +102,7 @@ const getRosenBox = async (
 };
 
 const proxyTx = (uTx, inputs) => {
-    const serial = JSON.parse(uTx.to_json());
+    const serial = JSONBigInt.parse(uTx.to_json());
     serial.inputs = inputs.map((curIn) => {
         return {
             ...curIn,
@@ -106,6 +111,7 @@ const proxyTx = (uTx, inputs) => {
     });
     return unsignedErgoTxToProxy(serial);
 };
+
 export const generateTX = async (
     inputs,
     changeAddress,
@@ -157,9 +163,9 @@ export const generateTX = async (
         .map(wasm.UnsignedInput.from_box_id);
     const unsignedInputs = new wasm.UnsignedInputs();
     unsignedInputArray.forEach((i) => unsignedInputs.add(i));
-
     const uTx = new wasm.UnsignedTransaction(unsignedInputs, new wasm.DataInputs(), txOutputs);
 
+    console.log(proxyTx(uTx, inputs));
     return proxyTx(uTx, inputs);
 };
 
