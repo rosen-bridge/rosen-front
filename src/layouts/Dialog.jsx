@@ -13,7 +13,9 @@ export default function AlertDialog({
     title,
     text,
     closeText,
-    proceedText
+    proceedText,
+    link,
+    linkText
 }) {
     return (
         <Dialog
@@ -24,7 +26,15 @@ export default function AlertDialog({
         >
             <DialogTitle id="alert-dialog-title">{title}</DialogTitle>
             <DialogContent>
-                <DialogContentText id="alert-dialog-description">{text}</DialogContentText>
+                <DialogContentText id="alert-dialog-description">
+                    <span>{text}</span>
+                    <br />
+                    {link && link.trim() !== "" && (
+                        <a href={link} target="_blank" rel="noreferrer">
+                            {linkText}
+                        </a>
+                    )}
+                </DialogContentText>
             </DialogContent>
             <DialogActions>
                 <Button onClick={onProceed} autoFocus disabled={proceedText === ""}>

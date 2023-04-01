@@ -20,7 +20,8 @@ import {
     isValidAddressErgo,
     isValidAddressCardano,
     countDecimals,
-    fixedDecimals
+    fixedDecimals,
+    generateTxLink
 } from "../../utils";
 import { consts } from "configs";
 import { BridgeMinimumFee } from "@rosen-bridge/minimum-fee-browser";
@@ -73,6 +74,8 @@ export default function Bridge() {
     const [dialogTitle, setDialogTitle] = useState("");
     const [dialogText, setDialogText] = useState("");
     const [dialogProceedText, setDialogProceedText] = useState("");
+    const [dialogLinkText, setDialogLinkText] = useState("");
+    const [dialogLink, setDialogLink] = useState("");
     const [bridgeFee, setBridgeFee] = useState(-1);
     const [networkFee, setNetworkFee] = useState(-1);
     const [fetchedFees, setFetchedFees] = useState({
@@ -108,10 +111,12 @@ export default function Bridge() {
         }
     };
 
-    const showAlert = (title, text, proceedText) => {
+    const showAlert = (title, text, proceedText, link = "", linkText = "") => {
         setDialogTitle(title);
         setDialogText(text);
         setDialogProceedText(proceedText);
+        setDialogLink(link);
+        setDialogLinkText(linkText);
         setOpendialog(true);
     };
 
@@ -437,7 +442,13 @@ export default function Bridge() {
                         token.label
                     );
                 }
-                showAlert("Success", "Transaction submitted successfully. TxId: " + txId, "");
+                showAlert(
+                    "Success",
+                    "Transaction submitted successfully.",
+                    "",
+                    generateTxLink(sourceChain, txId),
+                    "View on Explorer"
+                );
                 resetAll(true);
             } catch (e) {
                 showAlert("Error", "Failed to submit transaction. " + e.message, "");
@@ -481,6 +492,8 @@ export default function Bridge() {
                 closeText="Close"
                 proceedText={dialogProceedText}
                 onProceed={proceedDialog}
+                link={dialogLink}
+                linkText={dialogLinkText}
             />
             <Card variant="outlined" sx={{ mb: 5, bgcolor: "background.content" }}>
                 <Stack

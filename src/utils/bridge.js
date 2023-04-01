@@ -91,3 +91,11 @@ export const transfer = async (
         }
     }
 };
+
+export const generateTxLink = (chain, txId) => {
+    if (chain === "ERG") {
+        return `https://explorer.ergoplatform.com/en/transactions/${txId}`;
+    } else if (chain === "ADA") {
+        return `https://cardanoscan.io/transaction/${txId}`;
+    }
+};
