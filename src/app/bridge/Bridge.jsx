@@ -348,17 +348,12 @@ export default function Bridge() {
     }, [amount, form.data["token"]]);
 
     useEffect(() => {
-        const token = form.data["token"];
         const targetToken = form.data["targetToken"];
         if (targetToken && Object.keys(targetToken).length > 0) {
             if (targetToken.id === consts.cardanoTokenName) {
-                const minADA = consts.minBoxADA / Math.pow(10, targetToken.decimals);
-                const minADANative = minADA * Math.pow(10, token.decimals);
-                setNetworkMinUTXO(minADANative);
+                setNetworkMinUTXO(Number(consts.minBoxADA));
             } else if (targetToken.id === consts.ergTokenName) {
-                const minERG = consts.minBoxValue;
-                const minERGNative = minERG * Math.pow(10, token.decimals);
-                setNetworkMinUTXO(minERGNative);
+                setNetworkMinUTXO(Number(consts.minBoxValue));
             } else {
                 setNetworkMinUTXO(0);
             }
