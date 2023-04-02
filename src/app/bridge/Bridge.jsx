@@ -85,6 +85,7 @@ export default function Bridge() {
     const [feeToken, setFeeToken] = useState("");
     const [receivingAmount, setReceivingAmount] = useState(0);
     const [minTransferAmount, setMinTransferAmount] = useState(0);
+    const [networkMinUTXO, setNetworkMinUTXO] = useState(0);
     const [amount, setAmount] = useState(0);
     const [openSnack, setOpenSnack] = useState(false);
     const [snackSeverity, setSnackSeverity] = useState("info");
@@ -346,6 +347,24 @@ export default function Bridge() {
         }
     }, [amount, form.data["token"]]);
 
+    useEffect(() => {
+        const token = form.data["token"];
+        const targetToken = form.data["targetToken"];
+        if (targetToken && Object.keys(targetToken).length > 0) {
+            if (targetToken.id === consts.cardanoTokenName) {
+                const minADA = consts.minBoxADA / Math.pow(10, targetToken.decimals);
+                const minADANative = minADA * Math.pow(10, token.decimals);
+                setNetworkMinUTXO(minADANative);
+            } else if (targetToken.id === consts.ergTokenName) {
+                const minERG = consts.minBoxValue;
+                const minERGNative = minERG * Math.pow(10, token.decimals);
+                setNetworkMinUTXO(minERGNative);
+            } else {
+                setNetworkMinUTXO(0);
+            }
+        }
+    }, [form.data["targetToken"], networkFee]);
+
     async function handle_submit() {
         if (!walletConnected) {
             const result = await connectToWallet(sourceChain, nautilus, nami);
@@ -562,7 +581,7 @@ export default function Bridge() {
                                 placeholder={
                                     form.data.token?.id && bridgeFee + networkFee > 0
                                         ? `Minimum ${
-                                              minTransferAmount /
+                                              (minTransferAmount + networkMinUTXO) /
                                               Math.pow(10, form.data.token?.decimals || 0)
                                           } ${form.data.token?.label} `
                                         : "Amount"
