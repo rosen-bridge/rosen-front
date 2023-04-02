@@ -5,6 +5,7 @@ import { HashRouter as Router, Routes, Route, useNavigate } from "react-router-d
 import AppLayout from "layouts/AppLayout";
 import Bridge from "app/bridge/Bridge";
 import Assets from "app/assets/Assets";
+import Transactions from "app/transactions/Transactions";
 
 function Redirect() {
     const navigate = useNavigate();
@@ -21,7 +22,7 @@ function App() {
                     <Route index element={<Redirect />} />
                     <Route path="bridge" element={<Bridge />} />
                     <Route path="assets" element={<Assets />} />
-                    {/* <Route path="transactions" element={<Transactions />} /> */}
+                    <Route path="transactions" element={<Transactions />} />
                     {/* <Route path="support" element={<Support />} /> */}
                     {/* <Route path="dashboard" element={<Dashboard />} /> */}
                     <Route path="*" element={<Redirect />} />
