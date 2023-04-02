@@ -84,6 +84,7 @@ export default function Bridge() {
     });
     const [feeToken, setFeeToken] = useState("");
     const [receivingAmount, setReceivingAmount] = useState(0);
+    const [minTransferAmount, setMinTransferAmount] = useState(0);
     const [amount, setAmount] = useState(0);
     const [openSnack, setOpenSnack] = useState(false);
     const [snackSeverity, setSnackSeverity] = useState("info");
@@ -181,6 +182,12 @@ export default function Bridge() {
         const bridgeFee = Math.max(fees.bridgeFee, Math.ceil(paymentAmount * consts.feeRatio));
         setBridgeFee(bridgeFee);
         setReceivingAmount(paymentAmount - (fees.networkFee + bridgeFee));
+        setMinTransferAmount(
+            Math.max(
+                bridgeFee + fees.networkFee,
+                Math.ceil(fees.networkFee / (1 - consts.feeRatio))
+            )
+        );
     };
 
     const moveAllBalance = () => setAmount(balance / Math.pow(10, form.data.token?.decimals || 0));
@@ -555,7 +562,7 @@ export default function Bridge() {
                                 placeholder={
                                     form.data.token?.id && bridgeFee + networkFee > 0
                                         ? `Minimum ${
-                                              (bridgeFee + networkFee) /
+                                              minTransferAmount /
                                               Math.pow(10, form.data.token?.decimals || 0)
                                           } ${form.data.token?.label} `
                                         : "Amount"
