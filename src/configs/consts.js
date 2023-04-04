@@ -15,5 +15,10 @@ export const consts = {
     ergTokenName: "erg",
     ergTokenNameEIP12: "ERG",
     cardanoTokenName: "lovelace",
-    minBoxADA: "1000000"
+    minBoxADA: "1000000",
+    defaultPageLength: 15,
+    supportedChains: [
+        { id: "ERG", label: "Ergo", icon: "ERG.svg", tokenmap_name: "ergo" },
+        { id: "ADA", label: "Cardano", icon: "ADA.svg", tokenmap_name: "cardano" }
+    ]
 };

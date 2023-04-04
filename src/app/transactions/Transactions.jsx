@@ -6,28 +6,30 @@ import {
     TableHead,
     TableRow,
     TableCell,
-    Typography,
     TableBody,
-    Box,
     Card,
-    Tooltip,
     Snackbar,
     Alert,
-    CircularProgress,
-    FormControl,
-    InputLabel,
-    MenuItem,
-    Select,
-    TextField,
-    Checkbox
+    Grid,
+    Switch,
+    Button,
+    CircularProgress
 } from "@mui/material";
 import { styled } from "@mui/material/styles";
 import NumberFormat from "react-number-format";
-import InfoOutlinedIcon from "@mui/icons-material/InfoOutlined";
+import ArrowBackIcon from "@mui/icons-material/ArrowBack";
+import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
 import copy from "copy-to-clipboard";
-import { shortenString } from "utils";
+import { hex2ascii, shortenString } from "utils";
 import { apiInstance } from "utils/network";
 import { AxiosError } from "axios";
+import InputSelect from "components/InputSelect";
+import useObject from "reducers/useObject";
+import InputText from "components/InputText";
+import { LoadingButton } from "@mui/lab";
+import { useTheme } from "@emotion/react";
+import { consts } from "configs";
+import tokenMapFile from "../../configs/tokenmap.json";
 
 const ContainerBox = styled(TableContainer)(
     ({ theme }) => `
@@ -39,37 +41,26 @@ const ContainerBox = styled(TableContainer)(
     }
 `
 );
+const tokens = tokenMapFile.tokens;
 
 export default function Assets() {
-    const [transactions, setTransactions] = useState([
-        {
-            observationId: 40,
-            fromChain: "cardano",
-            toChain: "ergo",
-            fromAddress:
-                "addr1qy3xqgsqdc3d00rqgms82xz3fk0qmvx9pe3kjxcslktxtk8rhhf0cwv9ek5rtscrdgegjcjenjd4cjdg7ef9dcqq6njqvh7kek",
-            toAddress: "9eqUX6LWEs8F58hZbXhNXseQcUDAYDRaBhgdrhDxGNgWQwapYrh",
-            creationHeight: 8590878,
-            amount: "19400000",
-            networkFee: "1200000",
-            bridgeFee: "194000",
-            sourceChainTokenId: "asset1v25eyenfzrv6me9hw4vczfprdctzy5ed3x99p2",
-            requestId: "13be59e27b43914ccd927cf2c654c1173fd465ef5936c2eb4e5e8edaf4d3ab33",
-            eventId: "13be59e27b43914ccd927cf2c654c1173fd465ef5936c2eb4e5e8edaf4d3ab33",
-            feePaymentTx: "4321aaf49c0382044a0d8810a911d42760ccdddc1c9742b029f49d62146c4be3",
-            status: "Done",
-            lastHeight: 972893
-        }
-    ]);
+    const [transactions, setTransactions] = useState([]);
+    const theme = useTheme();
     const [fetched, setFetched] = useState(false);
+    const form = useObject();
     const [openSnack, setOpenSnack] = useState(false);
     const [snackSeverity, setSnackSeverity] = useState("info");
     const [snackMessage, setSnackMessage] = useState("");
     const mountFlag = useRef(true);
+    const [pageCount, setPageCount] = useState(0);
+    const [pageNumber, setPageNumber] = useState(1);
+    const [ergoTokens, setErgoTokens] = useState([]);
+    const [cardanoTokens, setCardanoTokens] = useState([]);
 
     const handleCopyClick = (event, text) => {
         event.preventDefault();
         copy(text);
+        showSnack("Copied to clipboard!", "success", 2000);
     };
 
     const closeSnack = () => {
@@ -88,6 +79,84 @@ export default function Assets() {
         }, duration);
     };
 
+    const fetchTxs = () => {
+        const body = {
+            limit: consts.defaultPageLength,
+            skip: (pageNumber - 1) * consts.defaultPageLength
+        };
+        if (form.data.fromId) {
+            body.fromId = Number(form.data.fromId);
+        }
+        if (form.data.toId) {
+            body.toId = Number(form.data.toId);
+        }
+        if (form.data.network) {
+            body.network = form.data.network.tokenmap_name;
+        }
+        if (form.data.token) {
+            body.tokenId = form.data.token.id;
+        }
+
+        apiInstance
+            .post("/transactions/list", body)
+            .then((res) => {
+                if (typeof res.data === "object") {
+                    const response = res.data;
+                    setTransactions(response.data);
+                    setFetched(true);
+                    setPageCount(Math.ceil(response.total / consts.defaultPageLength));
+                } else {
+                    showSnack("API Url not set!", "error", 3000);
+                }
+            })
+            .catch((err) => {
+                if (err instanceof AxiosError) {
+                    showSnack(err.message, "error", 3000);
+                } else {
+                    console.error(err);
+                }
+            });
+    };
+
+    useEffect(() => {
+        if (!mountFlag.current) return;
+        setErgoTokens(
+            tokens.map((item) => {
+                const ergoItem = item.ergo;
+                return {
+                    id: ergoItem.tokenId,
+                    label: ergoItem.tokenName,
+                    icon: "ERG.svg",
+                    decimals: ergoItem.decimals || 0
+                };
+            })
+        );
+        setCardanoTokens(
+            tokens.map((item) => {
+                const cardanoItem = item.cardano;
+                return {
+                    id: cardanoItem.fingerprint,
+                    label: hex2ascii(cardanoItem.assetName),
+                    policyId: cardanoItem.policyId,
+                    icon: "ADA.svg",
+                    decimals: cardanoItem.fingerprint === consts.cardanoTokenName ? 6 : 0
+                };
+            })
+        );
+        fetchTxs();
+        return () => {
+            mountFlag.current = false;
+        };
+    }, []);
+
+    useEffect(() => {
+        console.log("Form", form);
+        if (fetched) {
+            setFetched(false);
+            fetchTxs();
+        }
+    }, [pageNumber]);
+
     return (
         <PageBox
             title="Bridge Transactions"
@@ -96,80 +165,131 @@ export default function Assets() {
         >
             <Card variant="outlined" sx={{ mb: 5, bgcolor: "background.content" }}>
                 <ContainerBox>
-                    <Box sx={{ display: "flex", justifyContent: "left", m: 2 }}>
-                        <Typography sx={{ fontWeight: "bold", mr: 1, alignSelf: "center" }}>
-                            Filter by
-                        </Typography>
-                        <Box sx={{ mr: 2 }}>
-                            <FormControl fullWidth>
-                                <InputLabel id="network-filter-label">Network</InputLabel>
-                                <Select
-                                    labelId="network-filter-label"
-                                    id="network-filter"
-                                    value={"All Networks"}
-                                    // onChange={handleNetworkFilterChange}
-                                >
-                                    <MenuItem value="">All Networks</MenuItem>
-                                    <MenuItem value="Network A">Network A</MenuItem>
-                                    <MenuItem value="Network B">Network B</MenuItem>
-                                    <MenuItem value="Network C">Network C</MenuItem>
-                                </Select>
-                            </FormControl>
-                        </Box>
-                        <Box sx={{ mr: 2 }}>
-                            <TextField
-                                label="Token ID"
-                                variant="outlined"
-                                value={"1"}
-                                // onChange={null}
+                    <Grid
+                        container
+                        spacing={1}
+                        p={2}
+                        sx={{ display: "flex", justifyContent: "center" }}
+                    >
+                        <Grid item lg={1}>
+                            <InputText name="fromId" label={"Start ID"} form={form} />
+                        </Grid>
+                        <Grid item lg={1}>
+                            <InputText name="toId" label={"End ID"} form={form} />
+                        </Grid>
+                        <Grid item lg={2}>
+                            <InputSelect
+                                name="network"
+                                label="From Chain"
+                                options={consts.supportedChains}
+                                form={form}
                             />
-                        </Box>
-                        <Box>
-                            <FormControl>
-                                <Checkbox
-                                    checked={true}
-                                    // onChange={handleEventFilterChange}
-                                    color="primary"
-                                />
-                                <InputLabel>Event</InputLabel>
-                            </FormControl>
-                        </Box>
-                    </Box>
+                        </Grid>
+                        <Grid item lg={2}>
+                            <InputSelect
+                                name="token"
+                                label="Token"
+                                options={
+                                    form.data.network?.label === "Ergo"
+                                        ? ergoTokens
+                                        : form.data.network?.label === "Cardano"
+                                        ? cardanoTokens
+                                        : ergoTokens.concat(cardanoTokens)
+                                }
+                                form={form}
+                            />
+                        </Grid>
+                        <Grid
+                            item
+                            lg={1}
+                            sx={{
+                                display: "flex",
+                                justifyContent: "center",
+                                alignItems: "center"
+                            }}
+                        >
+                            <span>Event Txs</span>
+                            <Switch
+                                defaultChecked
+                                onChange={(e) => {
+                                    form.data.onlyEvent = !e.target.checked;
+                                }}
+                            />
+                            <span>All</span>
+                        </Grid>
+                        <Grid
+                            item
+                            lg={1.5}
+                            sx={{
+                                display: "flex",
+                                justifyContent: "center",
+                                alignItems: "center"
+                            }}
+                        >
+                            <LoadingButton
+                                loading={false}
+                                variant="contained"
+                                color="primary"
+                                size="medium"
+                                sx={{ borderRadius: "5px", padding: "10px 20px" }}
+                                onClick={fetchTxs}
+                            >
+                                {"Apply Filters"}
+                            </LoadingButton>
+                        </Grid>
+                    </Grid>
                     <Table>
                         <TableHead>
                             <TableRow>
+                                <TableCell>ID</TableCell>
                                 <TableCell>From Chain</TableCell>
                                 <TableCell>To Chain</TableCell>
                                 <TableCell>From Address</TableCell>
                                 <TableCell>To Address</TableCell>
-                                <TableCell>Creation Height</TableCell>
+                                <TableCell>Token</TableCell>
                                 <TableCell>Amount</TableCell>
-                                <TableCell>Network Fee</TableCell>
+                                <TableCell>Creation Height</TableCell>
                                 <TableCell>Bridge Fee</TableCell>
-                                <TableCell>Source Chain Token ID</TableCell>
-                                {/* {showEvents && <TableCell>Event ID</TableCell>} */}
+                                <TableCell>Network Fee</TableCell>
                                 <TableCell>Status</TableCell>
-                                <TableCell>Last Height</TableCell>
                             </TableRow>
                         </TableHead>
                         <TableBody>
                             {transactions?.map((row, index) => (
                                 <TableRow key={index}>
+                                    <TableCell>{row.observationId}</TableCell>
                                     <TableCell>{row.fromChain}</TableCell>
                                     <TableCell>{row.toChain}</TableCell>
-                                    <TableCell>{shortenString(row.fromAddress)}</TableCell>
-                                    <TableCell>{shortenString(row.toAddress)}</TableCell>
-                                    <TableCell>{row.creationHeight}</TableCell>
+                                    <TableCell
+                                        style={{ cursor: "pointer" }}
+                                        onClick={(event) => handleCopyClick(event, row.fromAddress)}
+                                    >
+                                        {shortenString(row.fromAddress)}
+                                    </TableCell>
+                                    <TableCell
+                                        style={{ cursor: "pointer" }}
+                                        onClick={(event) => handleCopyClick(event, row.toAddress)}
+                                    >
+                                        {shortenString(row.toAddress)}
+                                    </TableCell>
+                                    <TableCell
+                                        style={{ cursor: "pointer" }}
+                                        onClick={(event) =>
+                                            handleCopyClick(event, row.sourceChainTokenId)
+                                        }
+                                    >
+                                        {shortenString(row.sourceChainTokenId)}
+                                    </TableCell>
                                     <TableCell>
                                         <NumberFormat
-                                            value={row.amount}
+                                            value={Number(row.amount)}
                                             thousandSeparator
                                             displayType="text"
                                         />
                                     </TableCell>
                                     <TableCell>
                                         <NumberFormat
-                                            value={row.networkFee}
+                                            value={Number(row.creationHeight)}
                                             thousandSeparator
                                             displayType="text"
                                         />
@@ -181,14 +301,55 @@ export default function Assets() {
                                             displayType="text"
                                         />
                                     </TableCell>
-                                    <TableCell>{shortenString(row.sourceChainTokenId)}</TableCell>
-                                    {/* {showEvents && <TableCell>{row.eventId}</TableCell>} */}
+                                    <TableCell>
+                                        <NumberFormat
+                                            value={row.networkFee}
+                                            thousandSeparator
+                                            displayType="text"
+                                        />
+                                    </TableCell>
                                     <TableCell>{row.status}</TableCell>
-                                    <TableCell>{row.lastHeight}</TableCell>
                                 </TableRow>
                             ))}
                         </TableBody>
                     </Table>
+                    {!fetched ? (
+                        <div style={{ display: "flex", justifyContent: "center" }}>
+                            <div style={{ padding: "1rem" }}>
+                                <CircularProgress color="secondary" />
+                            </div>
+                        </div>
+                    ) : (
+                        <div style={{ textAlign: "center", margin: "16px" }}>
+                            <Button
+                                onClick={() => setPageNumber(pageNumber - 1)}
+                                disabled={pageNumber <= 1}
+                                color="secondary"
+                                size="small"
+                                startIcon={<ArrowBackIcon />}
+                            >
+                                Previous
+                            </Button>
+                            <span
+                                style={{
+                                    margin: "0px 16px",
+                                    color: theme.palette.primary.main,
+                                    fontWeight: "bold"
+                                }}
+                            >
+                                Page {pageNumber} of {pageCount}
+                            </span>
+                            <Button
+                                onClick={() => setPageNumber(pageNumber + 1)}
+                                disabled={pageNumber >= pageCount}
+                                color="secondary"
+                                size="small"
+                                endIcon={<ArrowForwardIcon />}
+                            >
+                                Next
+                            </Button>
+                        </div>
+                    )}
                 </ContainerBox>
             </Card>
             <Snackbar open={openSnack} anchorOrigin={{ horizontal: "center", vertical: "bottom" }}>
