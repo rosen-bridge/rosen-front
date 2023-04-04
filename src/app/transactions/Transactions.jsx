@@ -96,6 +96,9 @@ export default function Assets() {
         if (form.data.token) {
             body.tokenId = form.data.token.id;
         }
+        if (form.data.fetchAll === false) {
+            body.onlyWithEvents = true;
+        }
 
         apiInstance
             .post("/transactions/list", body)
@@ -157,6 +160,11 @@ export default function Assets() {
         }
     }, [pageNumber]);
 
+    useEffect(() => {
+        const { token, ...newFormData } = form.data;
+        form.data = newFormData;
+    }, [form.data["network"]]);
+
     return (
         <PageBox
             title="Bridge Transactions"
@@ -183,6 +191,12 @@ export default function Assets() {
                                 label="From Chain"
                                 options={consts.supportedChains}
                                 form={form}
+                                helpervisible={form.data.network?.label}
+                                helperText="Reset"
+                                helperClick={() => {
+                                    const { network, ...newFormData } = form.data;
+                                    form.data = newFormData;
+                                }}
                             />
                         </Grid>
                         <Grid item lg={2}>
@@ -197,6 +211,12 @@ export default function Assets() {
                                         : ergoTokens.concat(cardanoTokens)
                                 }
                                 form={form}
+                                helpervisible={form.data.token?.label}
+                                helperText="Reset"
+                                helperClick={() => {
+                                    const { token, ...newFormData } = form.data;
+                                    form.data = newFormData;
+                                }}
                             />
                         </Grid>
                         <Grid
@@ -212,7 +232,7 @@ export default function Assets() {
                             <Switch
                                 defaultChecked
                                 onChange={(e) => {
-                                    form.data.onlyEvent = !e.target.checked;
+                                    form.data.fetchAll = e.target.checked;
                                 }}
                             />
                             <span>All</span>

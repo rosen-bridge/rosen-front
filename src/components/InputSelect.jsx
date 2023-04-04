@@ -19,6 +19,9 @@ export default function InputSelect({
     label,
     disabled,
     map = { label: "label", icon: "icon" },
+    helpervisible = false,
+    helperText = "",
+    helperClick = () => {},
     ...restProps
 }) {
     const anchorRef = useRef();
@@ -66,6 +69,22 @@ export default function InputSelect({
                 onClick={disabled ? null : handle_open_menu}
                 disabled={disabled}
                 fullWidth
+                helperText={
+                    <div
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            helperClick();
+                        }}
+                        style={{
+                            cursor: "pointer",
+                            color: "white",
+                            textDecoration: "underline",
+                            display: helpervisible ? "block" : "none"
+                        }}
+                    >
+                        {helperText}
+                    </div>
+                }
             />
             <Menu
                 anchorEl={anchorRef.current}

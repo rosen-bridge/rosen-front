@@ -545,7 +545,13 @@ export default function Bridge() {
                                 form={form}
                             />
                         </Grid>
-                        <Grid item xs={12}>
+                        <Grid
+                            item
+                            xs={12}
+                            sx={{
+                                marginTop: "0.5rem"
+                            }}
+                        >
                             <InputText
                                 type="number"
                                 name="amount"
@@ -593,7 +599,13 @@ export default function Bridge() {
                                 sx={{ input: { fontSize: "1rem" } }}
                             />
                         </Grid>
-                        <Grid item xs={12}>
+                        <Grid
+                            item
+                            xs={12}
+                            sx={{
+                                marginTop: "0.5rem"
+                            }}
+                        >
                             <InputText
                                 name="address"
                                 label={`${
