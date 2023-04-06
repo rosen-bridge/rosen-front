@@ -37,6 +37,8 @@ export default function InputText({
     error,
     helperText,
     text,
+    onFocus,
+    onBlur,
     manualChange,
     onHelperClick,
     ...restProps
@@ -54,6 +56,8 @@ export default function InputText({
                 label={label}
                 value={value}
                 onChange={manualChange || handle_change}
+                onFocus={onFocus}
+                onBlur={onBlur}
                 multiline={type === "textarea"}
                 rows={3}
                 placeholder={placeholder}

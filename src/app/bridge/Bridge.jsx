@@ -89,6 +89,7 @@ export default function Bridge() {
     const [openSnack, setOpenSnack] = useState(false);
     const [snackSeverity, setSnackSeverity] = useState("info");
     const [snackMessage, setSnackMessage] = useState("");
+    const [amountLabel, setAmountLabel] = useState("Amount");
 
     const closeDialog = () => {
         setDialogTitle("");
@@ -557,7 +558,7 @@ export default function Bridge() {
                                         ? ""
                                         : feeToken === ""
                                         ? "Calculating Fees"
-                                        : "Amount"
+                                        : amountLabel
                                 }
                                 placeholder={
                                     form.data.token?.id && bridgeFee + networkFee > 0
@@ -566,6 +567,15 @@ export default function Bridge() {
                                               Math.pow(10, form.data.token?.decimals || 0)
                                           } ${form.data.token?.label} `
                                         : "Amount"
+                                }
+                                onFocus={() => setAmountLabel("Amount")}
+                                onBlur={() =>
+                                    setAmountLabel(
+                                        `Minimum ${
+                                            minTransferAmount /
+                                            Math.pow(10, form.data.token?.decimals || 0)
+                                        } ${form.data.token?.label} `
+                                    )
                                 }
                                 helperText={
                                     walletConnected && form.data.token?.id ? (
