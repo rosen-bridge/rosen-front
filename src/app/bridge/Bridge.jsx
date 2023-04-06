@@ -374,10 +374,6 @@ export default function Bridge() {
             const targetToken = form.data["targetToken"];
             const paymentAmount = amount * Math.pow(10, form.data["token"].decimals);
             const address = form.data["address"];
-            const targetMinUTXO = Number(target === "ERG" ? consts.minBoxValue : consts.minBoxADA);
-            const isTargetNative =
-                targetToken.id === consts.ergTokenName ||
-                targetToken.id === consts.cardanoTokenName;
             if (
                 !token ||
                 !target ||
@@ -400,15 +396,6 @@ export default function Bridge() {
             }
             if (paymentAmount > balance) {
                 showAlert("Error", "Insufficient token balance.", "");
-                setTransfering(false);
-                return;
-            }
-            if (isTargetNative && receivingAmount < targetMinUTXO) {
-                showAlert(
-                    "Error",
-                    "The transfer is not possible since the amount is lower than minUTXO.",
-                    ""
-                );
                 setTransfering(false);
                 return;
             }
