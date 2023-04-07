@@ -71,12 +71,12 @@ export const items = [
         path: "/assets",
         label: "Assets",
         icon: HomeRepairServiceIcon
+    },
+    {
+        path: "/transactions",
+        label: "Transactions",
+        icon: RepeatIcon
     }
-    // {
-    //     path: "/transactions",
-    //     label: "Transactions",
-    //     icon: RepeatIcon
-    // },
     // {
     //     path: "/support",
     //     label: "Support",

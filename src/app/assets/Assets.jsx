@@ -69,6 +69,7 @@ export default function Assets() {
     const handleCopyClick = (event, text) => {
         event.preventDefault();
         copy(text);
+        showSnack("Copied to clipboard!", "success", 2000);
     };
 
     const closeSnack = () => {

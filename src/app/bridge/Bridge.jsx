@@ -144,11 +144,6 @@ export default function Bridge() {
         }
     };
 
-    const allChains = [
-        { id: "ERG", label: "Ergo", icon: "ERG.svg", tokenmap_name: "ergo" },
-        { id: "ADA", label: "Cardano", icon: "ADA.svg", tokenmap_name: "cardano" }
-    ];
-
     const resetAll = (resetSource = false) => {
         if (resetSource) {
             form.data.source = {};
@@ -224,7 +219,9 @@ export default function Bridge() {
             if (data["source"].id !== sourceChain) {
                 resetAll();
                 setSourceChain(data["source"].id);
-                setTargetChains(allChains.filter((item) => item.id !== data["source"].id));
+                setTargetChains(
+                    consts.supportedChains.filter((item) => item.id !== data["source"].id)
+                );
                 connectToWallet(data["source"].id, nautilus, nami).then((result) => {
                     if (result === 0) setWalletConnected(true);
                 });
@@ -515,7 +512,7 @@ export default function Bridge() {
                             <InputSelect
                                 name="source"
                                 label="Source"
-                                options={allChains}
+                                options={consts.supportedChains}
                                 form={form}
                             />
                         </Grid>
@@ -549,7 +546,13 @@ export default function Bridge() {
                                 form={form}
                             />
                         </Grid>
-                        <Grid item xs={12}>
+                        <Grid
+                            item
+                            xs={12}
+                            sx={{
+                                marginTop: "0.5rem"
+                            }}
+                        >
                             <InputText
                                 type="number"
                                 name="amount"
@@ -606,7 +609,13 @@ export default function Bridge() {
                                 sx={{ input: { fontSize: "1rem" } }}
                             />
                         </Grid>
-                        <Grid item xs={12}>
+                        <Grid
+                            item
+                            xs={12}
+                            sx={{
+                                marginTop: "0.5rem"
+                            }}
+                        >
                             <InputText
                                 name="address"
                                 label={`${
