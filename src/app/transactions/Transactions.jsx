@@ -115,6 +115,15 @@ export default function Assets() {
             });
     };
 
+    const applyFilters = () => {
+        if (pageNumber === 1) {
+            fetchTxs();
+        } else {
+            // This will cause useEffect to trigger fetchTxs as well
+            setPageNumber(1);
+        }
+    };
+
     useEffect(() => {
         if (!mountFlag.current) return;
         setErgoTokens(
@@ -239,13 +248,7 @@ export default function Assets() {
                                 color="primary"
                                 size="medium"
                                 sx={{ borderRadius: "5px", padding: "10px 20px" }}
-                                onClick={() => {
-                                    if (pageNumber !== 1) {
-                                        setPageNumber(1);
-                                    } else {
-                                        fetchTxs();
-                                    }
-                                }}
+                                onClick={applyFilters}
                             >
                                 {"Apply Filters"}
                             </LoadingButton>
