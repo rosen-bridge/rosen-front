@@ -84,12 +84,6 @@ export default function Assets() {
             limit: consts.defaultPageLength,
             skip: (pageNumber - 1) * consts.defaultPageLength
         };
-        if (form.data.fromId) {
-            body.fromId = Number(form.data.fromId);
-        }
-        if (form.data.toId) {
-            body.toId = Number(form.data.toId);
-        }
         if (form.data.network) {
             body.network = form.data.network.tokenmap_name;
         }
@@ -153,7 +147,6 @@ export default function Assets() {
     }, []);
 
     useEffect(() => {
-        console.log("Form", form);
         if (fetched) {
             setFetched(false);
             fetchTxs();
@@ -179,12 +172,6 @@ export default function Assets() {
                         p={2}
                         sx={{ display: "flex", justifyContent: "center" }}
                     >
-                        <Grid item lg={1}>
-                            <InputText name="fromId" label={"Start ID"} form={form} />
-                        </Grid>
-                        <Grid item lg={1}>
-                            <InputText name="toId" label={"End ID"} form={form} />
-                        </Grid>
                         <Grid item lg={2}>
                             <InputSelect
                                 name="network"
@@ -252,7 +239,13 @@ export default function Assets() {
                                 color="primary"
                                 size="medium"
                                 sx={{ borderRadius: "5px", padding: "10px 20px" }}
-                                onClick={fetchTxs}
+                                onClick={() => {
+                                    if (pageNumber !== 1) {
+                                        setPageNumber(1);
+                                    } else {
+                                        fetchTxs();
+                                    }
+                                }}
                             >
                                 {"Apply Filters"}
                             </LoadingButton>
