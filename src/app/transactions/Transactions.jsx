@@ -43,7 +43,7 @@ const ContainerBox = styled(TableContainer)(
 );
 const tokens = tokenMapFile.tokens;
 
-export default function Assets() {
+export default function Transactions() {
     const [transactions, setTransactions] = useState([]);
     const theme = useTheme();
     const [fetched, setFetched] = useState(false);
