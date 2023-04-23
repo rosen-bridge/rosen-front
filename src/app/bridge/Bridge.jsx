@@ -468,12 +468,13 @@ export default function Bridge() {
             maxWidth="md"
             header={
                 <p style={{ color: "#FBC02D", textAlign: "justify" }}>
-                    <b>Attention</b>: The bridge is in public test mode. You can use it if you have
-                    test tokens. However you are able to transfer real ERG and ADA, please use these
-                    assets at your own risk and only try with some amounts that you're willing to
-                    lose. At this stage, there is no guarantee of a successful transfer or a refund.
-                    Also, redeem ERG/ADA during the test period, since the bridged assets will be
-                    completely worthless.
+                    <b>Attention</b>: We're excited to announce that our soft launch phase has come
+                    to an end. To continue using Rosen and explore its features, please use our new
+                    address at{" "}
+                    <a href="https://beta.rosen.tech" style={{ color: "blue" }}>
+                        beta.rosen.tech
+                    </a>
+                    .
                 </p>
             }
         >
