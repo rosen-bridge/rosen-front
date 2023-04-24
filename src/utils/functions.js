@@ -61,7 +61,7 @@ export function HexToAscii(string) {
 }
 
 export function fixedDecimals(number, decimals) {
-    console.log(number, decimals)
+    console.log(number, decimals);
     return Math.trunc(Number(number) * Math.pow(10, decimals)) / Math.pow(10, decimals);
 }
 
