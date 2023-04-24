@@ -260,8 +260,9 @@ export default function Bridge() {
                             label: hex2ascii(cardanoItem.assetName),
                             policyId: cardanoItem.policyId,
                             icon: "ADA.svg",
-                            decimals: cardanoItem.fingerprint === consts.cardanoTokenName ? 6 : 0
+                            decimals: cardanoItem.decimals || 0
                         };
+                        console.log("cardano item is: ", cardanoItem, cardanoToken)
                         setTargetTokens([cardanoToken]);
                         form.data.targetToken = cardanoToken;
                     }
@@ -461,6 +462,8 @@ export default function Bridge() {
             setAmount(newValue);
         }
     }
+    console.log(form.data)
+    console.log(targetTokens)
     return (
         <PageBox
             title="Rosen Bridge - Public Test"

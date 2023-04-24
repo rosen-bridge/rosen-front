@@ -1,5 +1,4 @@
 import { consts } from "../configs";
-import { fixedDecimals } from "../utils";
 
 const minBoxValue = consts.minBoxValue;
 const feeString = consts.ergoFee;
