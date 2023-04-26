@@ -101,7 +101,8 @@ export default function Transactions() {
             .post("/transactions/list", body)
             .then((res) => {
                 if (typeof res.data === "object") {
-                    const response = res.data.map((item) => {
+                    let response = res.data;
+                    response.data = response.data.map((item) => {
                         const network = item.fromChain;
                         const tokens = tokenMap.search(network, {
                             [tokenMap.getIdKey(network)]: item.sourceChainTokenId
@@ -310,7 +311,7 @@ export default function Transactions() {
                                     </TableCell>
                                     <TableCell>
                                         <NumberFormat
-                                            value={Number(row.amount) / row.decimals}
+                                            value={Number(row.amount) / Math.pow(10, row.decimals)}
                                             thousandSeparator
                                             displayType="text"
                                         />
@@ -324,14 +325,18 @@ export default function Transactions() {
                                     </TableCell>
                                     <TableCell>
                                         <NumberFormat
-                                            value={Number(row.bridgeFee) / row.decimals}
+                                            value={
+                                                Number(row.bridgeFee) / Math.pow(10, row.decimals)
+                                            }
                                             thousandSeparator
                                             displayType="text"
                                         />
                                     </TableCell>
                                     <TableCell>
                                         <NumberFormat
-                                            value={Number(row.networkFee) / row.decimals}
+                                            value={
+                                                Number(row.networkFee) / Math.pow(10, row.decimals)
+                                            }
                                             thousandSeparator
                                             displayType="text"
                                         />
