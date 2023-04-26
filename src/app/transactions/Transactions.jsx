@@ -30,6 +30,7 @@ import { LoadingButton } from "@mui/lab";
 import { useTheme } from "@emotion/react";
 import { consts } from "configs";
 import tokenMapFile from "../../configs/tokenmap.json";
+import { TokenMap } from "@rosen-bridge/tokens";
 
 const ContainerBox = styled(TableContainer)(
     ({ theme }) => `
@@ -42,6 +43,8 @@ const ContainerBox = styled(TableContainer)(
 `
 );
 const tokens = tokenMapFile.tokens;
+
+const tokenMap = new TokenMap(tokenMapFile);
 
 export default function Transactions() {
     const [transactions, setTransactions] = useState([]);
@@ -98,7 +101,16 @@ export default function Transactions() {
             .post("/transactions/list", body)
             .then((res) => {
                 if (typeof res.data === "object") {
-                    const response = res.data;
+                    const response = res.data.map((item) => {
+                        const network = item.fromChain;
+                        const tokens = tokenMap.search(network, {
+                            [tokenMap.getIdKey(network)]: item.sourceChainTokenId
+                        });
+                        return {
+                            ...item,
+                            decimals: tokens.length > 0 ? tokens[0][network].decimals || 0 : 0
+                        };
+                    });
                     setTransactions(response.data);
                     setFetched(true);
                     setPageCount(Math.ceil(response.total / consts.defaultPageLength));
@@ -298,7 +310,7 @@ export default function Transactions() {
                                     </TableCell>
                                     <TableCell>
                                         <NumberFormat
-                                            value={Number(row.amount)}
+                                            value={Number(row.amount) / row.decimals}
                                             thousandSeparator
                                             displayType="text"
                                         />
@@ -312,14 +324,14 @@ export default function Transactions() {
                                     </TableCell>
                                     <TableCell>
                                         <NumberFormat
-                                            value={row.bridgeFee}
+                                            value={Number(row.bridgeFee) / row.decimals}
                                             thousandSeparator
                                             displayType="text"
                                         />
                                     </TableCell>
                                     <TableCell>
                                         <NumberFormat
-                                            value={row.networkFee}
+                                            value={Number(row.networkFee) / row.decimals}
                                             thousandSeparator
                                             displayType="text"
                                         />

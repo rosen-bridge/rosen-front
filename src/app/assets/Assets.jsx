@@ -22,6 +22,8 @@ import copy from "copy-to-clipboard";
 import { shortenString } from "utils";
 import { apiInstance } from "utils/network";
 import { AxiosError } from "axios";
+import { TokenMap } from "@rosen-bridge/tokens";
+import tokenMapFile from "../../configs/tokenmap.json";
 
 const ContainerBox = styled(TableContainer)(
     ({ theme }) => `
@@ -33,6 +35,7 @@ const ContainerBox = styled(TableContainer)(
     }
 `
 );
+const tokenMap = new TokenMap(tokenMapFile);
 
 export default function Assets() {
     const [assets, setAssets] = useState([]);
@@ -48,7 +51,17 @@ export default function Assets() {
             .get("/assets/list")
             .then((res) => {
                 if (typeof res.data === "object") {
-                    setAssets(res.data);
+                    const data = res.data.map((item) => {
+                        const network = item.tokenNetwork;
+                        const tokens = tokenMap.search(network, {
+                            [tokenMap.getIdKey(network)]: item.tokenId
+                        });
+                        return {
+                            ...item,
+                            decimals: tokens.length > 0 ? tokens[0][network].decimals || 0 : 0
+                        };
+                    });
+                    setAssets(data);
                     setFetched(true);
                 } else {
                     showSnack("API Url not set!", "error", 3000);
@@ -88,6 +101,7 @@ export default function Assets() {
         }, duration);
     };
 
+    console.log(assets);
     return (
         <PageBox
             title="Bridge Assets"
@@ -157,14 +171,16 @@ export default function Assets() {
                                     </TableCell>
                                     <TableCell>
                                         <NumberFormat
-                                            value={row.lockedAmount}
+                                            value={row.lockedAmount / Math.pow(10, row.decimals)}
                                             thousandSeparator
                                             displayType="text"
                                         />
                                     </TableCell>
                                     <TableCell>
                                         <NumberFormat
-                                            value={row.coldLockedAmount}
+                                            value={
+                                                row.coldLockedAmount / Math.pow(10, row.decimals)
+                                            }
                                             thousandSeparator
                                             displayType="text"
                                         />
