@@ -10,6 +10,9 @@ const Root = styled(Box)(({theme}) => ({
     display: "flex",
     flexDirection: "row",
     colorScheme: theme.palette.mode,
+    "& .ps__rail-x:hover": {
+        backgroundColor: theme.palette.mode === "light" ? "#eee" : "#0a1729",
+    },
     backgroundColor: "#112641",
     backgroundImage: theme.palette.mode === "light" ? `linear-gradient(180deg, #FC7B41 0%, #E2844A 30%, #52617E 70%, #164B7D 100%)` : "none",
     [theme.breakpoints.down("tablet")]: {
