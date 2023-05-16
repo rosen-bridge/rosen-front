@@ -1,10 +1,10 @@
 import React from "react"
-import PageBox from "layouts/PageBox";
+import PageLayout from "layouts/PageLayout";
 
 export default function Dashboard() {
     return (
-        <PageBox title="Bridge" maxWidth="xs">
+        <PageLayout title="Dashboard">
 
-        </PageBox>
+        </PageLayout>
     )
 }

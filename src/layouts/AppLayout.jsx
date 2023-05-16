@@ -1,29 +1,85 @@
-import React from "react";
-import {Box, Button} from "@mui/material";
+import React, {useMemo} from "react";
+import {Avatar, Box, styled, Typography, useMediaQuery, useTheme} from "@mui/material";
 import {Outlet} from "react-router-dom";
-import {styled} from "@mui/material/styles";
-import CssBaseline from '@mui/material/CssBaseline';
-import AppNav from "./AppNav";
-import DiamondRoundedIcon from '@mui/icons-material/DiamondRounded';
-import Brightness4Icon from '@mui/icons-material/Brightness4';
-import Brightness7Icon from '@mui/icons-material/Brightness7';
-import ThemeProvider from "@mui/material/styles/ThemeProvider";
-import {create_theme} from "./theme";
-import useMediaQuery from "@mui/material/useMediaQuery";
-import DesktopLayout from "./DesktopLayout";
-import MobileLayout from "./MobileLayout";
+import Navigation from "./Navigation";
+import Toolbar from "./Toolbar";
 
+const Root = styled(Box)(({theme}) => ({
+    width: "100vw",
+    height: "100vh",
+    display: "flex",
+    flexDirection: "row",
+    colorScheme: theme.palette.mode,
+    backgroundColor: "#112641",
+    backgroundImage: theme.palette.mode === "light" ? `linear-gradient(180deg, #FC7B41 0%, #E2844A 30%, #52617E 70%, #164B7D 100%)` : "none",
+    [theme.breakpoints.down("tablet")]: {
+        flexDirection: "column",
+        backgroundColor: "#0a1729",
+        backgroundImage: theme.palette.mode === "light" ? `linear-gradient(90deg, ${theme.palette.info.main} 0%, ${theme.palette.secondary.dark} 100%)` : "none",
+    }
+}))
+
+const Appbar = styled(Box)(({theme}) => ({
+    padding: theme.spacing(2),
+    flexBasis: 112,
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "center",
+    [theme.breakpoints.down("tablet")]: {
+        padding: theme.spacing(1),
+        flexBasis: 64,
+        flexDirection: "row",
+    },
+    [theme.breakpoints.up("tablet")]: {
+        "& .toolbar": {
+            display: "none"
+        }
+    },
+    "& .toolbar": {
+        marginLeft: "auto",
+        "& .MuiIconButton-root": {
+            color: theme.palette.primary.contrastText
+        }
+    }
+}))
+
+const Main = styled(Box)(({theme}) => ({
+    flexGrow: 1,
+    overflowY: "auto",
+}))
+
+const Brand = styled(Typography)(({theme}) => ({
+    color: theme.palette.mode === "light" ? "#e5e5e5" : "#ff9b03",
+    textTransform: "uppercase",
+    textAlign: "center",
+    margin: theme.spacing(1),
+    lineHeight: 1.2,
+    [theme.breakpoints.up("tablet")]: {
+        fontSize: "0.75rem",
+        "& b": {
+            fontSize: "108%"
+        }
+    }
+}))
 
 export default function AppLayout() {
-    const [mode, setMode] = React.useState('light');
-    const toggle_mode = () => setMode((prevMode) => (prevMode === 'light' ? 'dark' : 'light'));
-    const theme = React.useMemo(create_theme(mode),[mode])
-    const desktop = useMediaQuery(theme.breakpoints.up('sm'));
-
+    const theme = useTheme()
+    const isMobile = useMediaQuery(theme.breakpoints.down("tablet"))
+    const sxSize = useMemo(() => {
+        const size = isMobile ? 36 : 64
+        return {width: size, height: size}
+    })
     return (
-        <ThemeProvider theme={theme}>
-            <CssBaseline/>
-            {desktop ? <DesktopLayout toggle_mode={toggle_mode} /> : <MobileLayout toggle_mode={toggle_mode} /> }
-        </ThemeProvider>
+        <Root>
+            <Appbar>
+                <Avatar src={`/rosen-${theme.palette.mode}.png`} sx={sxSize}/>
+                <Brand><b>Rosen</b> Bridge</Brand>
+                <Navigation/>
+                <Toolbar/>
+            </Appbar>
+            <Main component="main">
+                <Outlet/>
+            </Main>
+        </Root>
     )
 }

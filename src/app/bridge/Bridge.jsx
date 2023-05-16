@@ -1,11 +1,20 @@
 import React from "react"
-import {Box, Button, Card, Divider, Grid, Stack, Typography} from "@mui/material";
-import PageBox from "layouts/PageBox";
-import InputSelect from "components/InputSelect";
-import useObject from "reducers/useObject";
-import InputText from "components/InputText";
+import {
+    Box,
+    Button,
+    Card,
+    Divider,
+    Grid,
+    Stack,
+    Typography,
+    Alert,
+} from "@mui/material";
 import useMediaQuery from "@mui/material/useMediaQuery";
 import {useTheme} from "@mui/material/styles";
+import InputSelect from "components/InputSelect";
+import InputText from "components/InputText";
+import PageLayout from "layouts/PageLayout";
+import useObject from "reducers/useObject";
 
 export function ValueDisplay({title, value, unit, color="primary"}) {
     return (
@@ -19,7 +28,7 @@ export function ValueDisplay({title, value, unit, color="primary"}) {
 
 export default function Bridge() {
     const theme = useTheme();
-    const mdUp = useMediaQuery(theme.breakpoints.up('md'));
+    const mdUp = useMediaQuery(theme.breakpoints.up('tablet'));
     const form = useObject()
     const sourceChains = [
         {id: "BTC", label: "Bitcoin", icon: "BTC.svg", min: 0.001},
@@ -32,19 +41,23 @@ export default function Bridge() {
     }
 
     return (
-        <PageBox
-            title="Bridge"
-            subtitle="Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. "
-            maxWidth="md"
+        <PageLayout
+            title="Rosen Bridge - Public Test"
+            subtitle="Testing Rosen bridge on Ergo and Cardano main-nets using meme tokens"
         >
-            <Card variant="outlined" sx={{mb: 5, bgcolor: "background.content"}}>
+            <Alert severity="warning" variant="standard" sx={{mb:3}}>
+                <b>Attention:</b> The bridge is in public test mode. Please use it at your own risk and only try with some amounts that you're willing to lose.
+                At this stage, there is no guarantee of a successful transfer or a refund.
+                Also, redeem your tokens during the test period, since the bridged assets are completely worthless.
+            </Alert>
+            <Card>
                 <Stack
-                    direction={{ xs: 'column', md: 'row' }}
+                    direction={{ mobile: 'column', tablet: 'row' }}
                     divider={<Divider orientation={mdUp ? "vertical" : "horizontal"} flexItem />}
                     alignItems="flex-end"
                 >
                     <Grid container spacing={2} p={2}>
-                        <Grid item xs={12} sm={6}>
+                        <Grid item mobile={12} tablet={6}>
                             <InputSelect
                                 name="source"
                                 label="Source"
@@ -52,7 +65,7 @@ export default function Bridge() {
                                 form={form}
                             />
                         </Grid>
-                        <Grid item xs={12} sm={6}>
+                        <Grid item mobile={12} tablet={6}>
                             <InputSelect
                                 name="token"
                                 label="From Token"
@@ -61,10 +74,7 @@ export default function Bridge() {
                                 form={form}
                             />
                         </Grid>
-                        <Grid item xs={12} >
-
-                        </Grid>
-                        <Grid item xs={12} sm={6}>
+                        <Grid item mobile={12} tablet={6}>
                             <InputSelect
                                 name="target"
                                 label="Target"
@@ -72,7 +82,7 @@ export default function Bridge() {
                                 form={form}
                             />
                         </Grid>
-                        <Grid item xs={12} sm={6}>
+                        <Grid item mobile={12} tablet={6}>
                             <InputSelect
                                 name="targetToken"
                                 label="To Token"
@@ -81,7 +91,7 @@ export default function Bridge() {
                                 form={form}
                             />
                         </Grid>
-                        <Grid item xs={12} >
+                        <Grid item mobile={12} >
                             <InputText
                                 type="number"
                                 name="amount"
@@ -93,7 +103,7 @@ export default function Bridge() {
                                 sx={{'input': {fontSize: '2rem'}}}
                             />
                         </Grid>
-                        <Grid item xs={12} >
+                        <Grid item mobile={12} >
                             <InputText
                                 name="address"
                                 label="Address"
@@ -102,7 +112,7 @@ export default function Bridge() {
                         </Grid>
                     </Grid>
 
-                    <Stack spacing={2} p={2} sx={{minWidth: {xs: "100%", md: 320}, alignSelf: "stretch", justifyContent: "flex-end", bgcolor: "background.header"}}>
+                    <Stack spacing={2} p={2} sx={{minWidth: {mobile: "100%", tablet: 320}, alignSelf: "stretch", justifyContent: "flex-end", bgcolor: "secondary.light"}}>
                         <ValueDisplay title="Bridge Fee" value={0.005*form.data["amount"]||0} unit="BTC"/>
                         <ValueDisplay title="Transaction Fee" value={0.01*form.data["amount"]||0} unit="BTC"/>
                         <Divider/>
@@ -121,6 +131,6 @@ export default function Bridge() {
                     </Stack>
                 </Stack>
             </Card>
-        </PageBox>
+        </PageLayout>
     )
 }
