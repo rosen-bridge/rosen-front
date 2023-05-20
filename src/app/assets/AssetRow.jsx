@@ -5,7 +5,7 @@ import TableCellAddress from "components/TableCellAddress";
 import TableCellNumber from "components/TableCellNumber";
 import {useMedia} from "reducers/useMedia";
 
-export default function (row) {
+export default function AssetRow(row) {
     const {isMobile} = useMedia()
     const [expand, set_expand] = useState(false)
 
@@ -50,7 +50,7 @@ export default function (row) {
                     <Button
                         variant="text"
                         onClick={toggle_expand}
-                        sx={{fontSize: "inherit"}}
+                        sx={{fontSize: "inherit", px: 2}}
                         endIcon={expand ? <Unicons.UilAngleUp/> : <Unicons.UilAngleDown/>}
                     >
                         {expand ? "Show less" : "Show more"}

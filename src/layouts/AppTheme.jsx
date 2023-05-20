@@ -167,8 +167,11 @@ export default function AppTheme(props) {
                 MuiTableBody: {
                     styleOverrides: {
                         root: {
+                            "& tr.divider td": {
+                                paddingTop: theme.spacing(2),
+                            },
                             "& tr.divider:not(:first-of-type)": {
-                                borderTop: `1px solid ${theme.palette.divider}`
+                                borderTop: `1px solid ${theme.palette.divider}`,
                             },
                         },
                     }
@@ -184,7 +187,7 @@ export default function AppTheme(props) {
                             [theme.breakpoints.down('tablet')]: {
                                 verticalAlign: 'top',
                                 "&:not(.MuiTableCell-paddingNone)": {
-                                    padding: theme.spacing(1)
+                                    padding: theme.spacing(1,2)
                                 },
                                 "&:first-of-type": {
                                     color: theme.palette.text.secondary

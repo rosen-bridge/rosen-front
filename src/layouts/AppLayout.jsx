@@ -1,8 +1,9 @@
-import React, {useMemo} from "react";
-import {Avatar, Box, styled, Typography, useMediaQuery, useTheme} from "@mui/material";
+import React, {useEffect, useRef, useState} from "react";
+import {Avatar, Box, styled, Typography, useTheme} from "@mui/material";
 import {Outlet} from "react-router-dom";
 import Navigation from "./Navigation";
 import Toolbar from "./Toolbar";
+import {cx} from "../utils/utils";
 
 const Root = styled(Box)(({theme}) => ({
     width: "100vw",
@@ -28,25 +29,45 @@ const Appbar = styled(Box)(({theme}) => ({
     display: "flex",
     flexDirection: "column",
     alignItems: "center",
-    [theme.breakpoints.down("tablet")]: {
-        padding: theme.spacing(1),
-        flexBasis: 64,
-        flexDirection: "row",
-    },
-    [theme.breakpoints.up("tablet")]: {
-        "& .toolbar": {
-            display: "none"
-        }
+    transition: "0.2s",
+    fontSize: "0.75rem",
+    "& .MuiAvatar-root": {
+        width: 64,
+        height: 64,
+        transition: "0.2s",
     },
     "& .toolbar": {
         marginLeft: "auto",
         "& .MuiIconButton-root": {
             color: theme.palette.primary.contrastText
         }
-    }
+    },
+    [theme.breakpoints.down("tablet")]: {
+        padding: theme.spacing(2,1),
+        fontSize: "1.2rem",
+        flexBasis: 64,
+        flexDirection: "row",
+        "& .MuiAvatar-root": {
+            width: 42,
+            height: 42,
+        },
+        "&.shrunk": {
+            padding: theme.spacing(1,1),
+            fontSize: "1rem",
+            "& .MuiAvatar-root": {
+                width: 34,
+                height: 34,
+            }
+        }
+    },
+    [theme.breakpoints.up("tablet")]: {
+        "& .toolbar": {
+            display: "none"
+        }
+    },
 }))
 
-const Main = styled(Box)(({theme}) => ({
+const Main = styled(Box)(() => ({
     flexGrow: 1,
     overflowY: "auto",
 }))
@@ -57,8 +78,9 @@ const Brand = styled(Typography)(({theme}) => ({
     textAlign: "center",
     margin: theme.spacing(1),
     lineHeight: 1.2,
+    fontSize: "inherit",
+    transition: "0.1s",
     [theme.breakpoints.up("tablet")]: {
-        fontSize: "0.75rem",
         "& b": {
             fontSize: "108%"
         }
@@ -66,21 +88,36 @@ const Brand = styled(Typography)(({theme}) => ({
 }))
 
 export default function AppLayout() {
+    const main = useRef(null)
     const theme = useTheme()
-    const isMobile = useMediaQuery(theme.breakpoints.down("tablet"))
-    const sxSize = useMemo(() => {
-        const size = isMobile ? 36 : 64
-        return {width: size, height: size}
-    })
+    const [isShrunk, setShrunk] = useState(false);
+
+    useEffect(() => {
+        const element = main.current;
+        const handler = () => {
+            setShrunk((isShrunk) => {
+                if (!isShrunk && element.scrollTop > 20) {
+                    return true;
+                }
+                if (isShrunk && element.scrollTop < 4) {
+                    return false;
+                }
+                return isShrunk;
+            });
+        };
+        element.addEventListener("scroll", handler);
+        return () => element.removeEventListener("scroll", handler);
+    }, []);
+
     return (
         <Root>
-            <Appbar>
-                <Avatar src={`/rosen-${theme.palette.mode}.png`} sx={sxSize}/>
+            <Appbar className={cx(isShrunk && "shrunk")}>
+                <Avatar src={`/rosen-${theme.palette.mode}.png`}/>
                 <Brand><b>Rosen</b> Bridge</Brand>
                 <Navigation/>
                 <Toolbar/>
             </Appbar>
-            <Main component="main">
+            <Main component="main" ref={main}>
                 <Outlet/>
             </Main>
         </Root>

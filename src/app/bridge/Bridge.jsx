@@ -28,7 +28,7 @@ export function ValueDisplay({title, value, unit, color="primary"}) {
 
 export default function Bridge() {
     const theme = useTheme();
-    const mdUp = useMediaQuery(theme.breakpoints.up('tablet'));
+    const mdUp = useMediaQuery(theme.breakpoints.up('laptop'));
     const form = useObject()
     const sourceChains = [
         {id: "BTC", label: "Bitcoin", icon: "BTC.svg", min: 0.001},
@@ -50,9 +50,9 @@ export default function Bridge() {
                 At this stage, there is no guarantee of a successful transfer or a refund.
                 Also, redeem your tokens during the test period, since the bridged assets are completely worthless.
             </Alert>
-            <Card>
+            <Card sx={{maxWidth: {tablet: 500, laptop: 800}, mx: "auto"}}>
                 <Stack
-                    direction={{ mobile: 'column', tablet: 'row' }}
+                    direction={{ mobile: 'column', laptop: 'row' }}
                     divider={<Divider orientation={mdUp ? "vertical" : "horizontal"} flexItem />}
                     alignItems="flex-end"
                 >
@@ -112,7 +112,7 @@ export default function Bridge() {
                         </Grid>
                     </Grid>
 
-                    <Stack spacing={2} p={2} sx={{minWidth: {mobile: "100%", tablet: 320}, alignSelf: "stretch", justifyContent: "flex-end", bgcolor: "secondary.light"}}>
+                    <Stack spacing={2} p={2} sx={{minWidth: {mobile: "100%", laptop: 320}, alignSelf: "stretch", justifyContent: "flex-end", bgcolor: "secondary.light"}}>
                         <ValueDisplay title="Bridge Fee" value={0.005*form.data["amount"]||0} unit="BTC"/>
                         <ValueDisplay title="Transaction Fee" value={0.01*form.data["amount"]||0} unit="BTC"/>
                         <Divider/>

@@ -4,7 +4,7 @@ import {Button, TableCell, TableRow} from "@mui/material";
 import TableCellAddress from "components/TableCellAddress";
 import {useMedia} from "reducers/useMedia";
 
-export default function (row) {
+export default function TransRow(row) {
     const {isMobile} = useMedia()
     const [expand, set_expand] = useState(false)
 
@@ -61,11 +61,11 @@ export default function (row) {
                 </TableRow>
             </>}
             <TableRow>
-                <TableCell padding="none" >
+                <TableCell padding="none">
                     <Button
                         variant="text"
                         onClick={toggle_expand}
-                        sx={{fontSize: "inherit"}}
+                        sx={{fontSize: "inherit", px: 2}}
                         endIcon={expand ? <Unicons.UilAngleUp/> : <Unicons.UilAngleDown/>}
                     >
                         {expand ? "Show less" : "Show more"}
