@@ -21,6 +21,7 @@ const Root = styled(Box)(({theme}) => ({
         border: `1px solid ${theme.palette.divider}`,
         borderRadius: theme.shape.borderRadius,
         backgroundColor: theme.palette.background.default,
+        backdropFilter: "blur(4px)",
         flexDirection: "row",
         gap: theme.spacing(0.5),
         zIndex: 1000,
@@ -32,7 +33,7 @@ const NavButtonBase = styled(Button)(({theme}) => ({
     flexDirection: "column",
     gap: theme.spacing(0.5),
     fontSize: "x-small",
-    color: theme.palette.primary.contrastText,
+    color: theme.palette.common.white,
     opacity: 0.8,
     "&:hover": {
         opacity: 1,
@@ -47,22 +48,22 @@ const NavButtonBase = styled(Button)(({theme}) => ({
         opacity: 1,
         "& .MuiButton-startIcon" : {
             color: "#28475c",
-            backgroundColor: theme.palette.mode === "light" ? "#fff" : "#cbdaee",
+            backgroundColor: theme.palette.mode === "light" ? theme.palette.common.white : theme.palette.primary.dark,
         },
     },
     [theme.breakpoints.down("tablet")]: {
-        color: theme.palette.mode === "light" ? theme.palette.primary.dark : theme.palette.primary.light,
+        color: theme.palette.primary.dark,
         fontSize: "xx-small",
         flexBasis: "20%",
         "& .MuiButton-startIcon" : {
-            color: theme.palette.mode === "light" ? theme.palette.primary.dark : theme.palette.primary.light,
+            color: theme.palette.primary.dark,
             backgroundColor: "transparent",
             padding: 0,
         },
         "&.active" : {
-            color: theme.palette.primary.main,
+            color: theme.palette.primary.dark,
             "& .MuiButton-startIcon" : {
-                color: theme.palette.primary.main,
+                color: theme.palette.primary.dark,
                 backgroundColor: "transparent",
             },
         },

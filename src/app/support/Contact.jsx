@@ -17,8 +17,8 @@ export default function Contact() {
                 <Typography>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.</Typography>
             </Grid>
             <Grid item mobile={12} tablet={6}>
-                <Card sx={{border: "3px solid", borderColor: "secondary.main", pb: 2, pl: 2, overflow: "visible", marginRight: "32px", backgroundColor: "#0000001a"}}>
-                    <Card sx={{p: 2, marginTop: "-32px", marginRight: "-32px"}}>
+                <Card elevation={0} sx={{border: "3px solid", borderColor: "secondary.main", pb: 2, pl: 2, overflow: "visible", marginRight: "32px", backgroundColor: "#0000003a"}}>
+                    <Card sx={{p: 2, marginTop: "-32px", marginRight: "-32px", bgcolor: "primary.light"}}>
                         <Stack spacing={2}>
                             <InputText
                                 name="name"

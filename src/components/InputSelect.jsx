@@ -3,7 +3,9 @@ import {Avatar, Box, IconButton, InputAdornment, MenuItem, Menu, ListItemText, T
 import ArrowDropDownIcon from '@mui/icons-material/ArrowDropDown';
 import CloseIcon from '@mui/icons-material/Close';
 
-export default function InputSelect({form, options, name, label, placeholder, clearable=false, disabled, map={label: "label", icon: "icon"}, size="medium", ...restProps}) {
+const ICON_SIZE = 24;
+
+export default function InputSelect({form, options, name, label, placeholder, clearable=false, disabled, map={label: "label", icon: "icon"}, size="medium", variant, InputSx, ...restProps}) {
     const anchorRef = useRef()
     const [menuDisplay, set_menuDisplay] = useState(false);
 
@@ -34,9 +36,17 @@ export default function InputSelect({form, options, name, label, placeholder, cl
                 label={label}
                 InputProps={{
                     readOnly: true,
+                    sx: {
+                        ...InputSx,
+                        transition: "0.1s",
+                        ...menuDisplay && ({
+                            borderBottomLeftRadius: 0,
+                            borderBottomRightRadius: 0
+                        })
+                    },
                     ...(value[map.icon] && {startAdornment: (
                         <InputAdornment position="start">
-                            <Avatar src={`/static/images/${value[map.icon]}`} sx={{width: size==="small"?24:40, height: size==="small"?24:40}}/>
+                            <Avatar src={`/static/images/${value[map.icon]}`} sx={{width: ICON_SIZE, height: ICON_SIZE}}/>
                         </InputAdornment>
                     )}),
                     endAdornment: (
@@ -48,17 +58,22 @@ export default function InputSelect({form, options, name, label, placeholder, cl
                         </InputAdornment>
                     )
                 }}
+                inputProps={{tabIndex: -1,}}
                 onClick={disabled ? null : handle_open_menu}
                 disabled={disabled}
-                size={size}
                 placeholder={placeholder}
+                variant={variant}
                 fullWidth
             />
             <Menu
                 anchorEl={anchorRef.current}
                 open={menuDisplay}
                 onClose={handle_close_menu}
-                sx={{'& .MuiPaper-root': {width: anchorRef?.current?.offsetWidth}}}
+                sx={{'& .MuiPaper-root': {
+                    width: anchorRef?.current?.offsetWidth,
+                    borderTopRightRadius: 0,
+                    borderTopLeftRadius: 0
+                }}}
             >
                 {options.map((option, index) => (
                     <MenuItem
@@ -67,7 +82,7 @@ export default function InputSelect({form, options, name, label, placeholder, cl
                         onClick={(event) => handle_click_item(event, index)}
                     >
                         <ListItemAvatar>
-                            <Avatar src={`/static/images/${option[map.icon]}`}/>
+                            <Avatar src={`/static/images/${option[map.icon]}`} sx={{width: ICON_SIZE, height: ICON_SIZE}}/>
                         </ListItemAvatar>
                         <ListItemText primary={option[map.label]} />
                     </MenuItem>

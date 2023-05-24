@@ -45,50 +45,54 @@ export default function Bridge() {
             title="Rosen Bridge - Public Test"
             subtitle="Testing Rosen bridge on Ergo and Cardano main-nets using meme tokens"
         >
-            <Alert severity="warning" variant="standard" sx={{mb:3}}>
+            <Alert severity="warning" variant="standard" sx={{mb:3, maxWidth: {tablet: 500, laptop: 800}, mx: "auto"}}>
                 <b>Attention:</b> The bridge is in public test mode. Please use it at your own risk and only try with some amounts that you're willing to lose.
                 At this stage, there is no guarantee of a successful transfer or a refund.
                 Also, redeem your tokens during the test period, since the bridged assets are completely worthless.
             </Alert>
-            <Card sx={{maxWidth: {tablet: 500, laptop: 800}, mx: "auto"}}>
+            <Card sx={{maxWidth: {tablet: 500, laptop: 800}, mx: "auto", bgcolor: "primary.light"}}>
                 <Stack
                     direction={{ mobile: 'column', laptop: 'row' }}
                     divider={<Divider orientation={mdUp ? "vertical" : "horizontal"} flexItem />}
                     alignItems="flex-end"
                 >
                     <Grid container spacing={2} p={2}>
-                        <Grid item mobile={12} tablet={6}>
+                        <Grid item mobile={12} sx={{display: "flex"}}>
                             <InputSelect
                                 name="source"
                                 label="Source"
                                 options={sourceChains}
                                 form={form}
+                                InputSx={{borderBottomRightRadius: 0, borderTopRightRadius: 0}}
+                                sx={{width: "40%"}}
                             />
-                        </Grid>
-                        <Grid item mobile={12} tablet={6}>
                             <InputSelect
                                 name="token"
                                 label="From Token"
                                 options={sourceChains}
                                 disabled={!form.data["source"]}
                                 form={form}
+                                InputSx={{borderBottomLeftRadius: 0, borderTopLeftRadius: 0}}
+                                sx={{width: "60%"}}
                             />
                         </Grid>
-                        <Grid item mobile={12} tablet={6}>
+                        <Grid item mobile={12} sx={{display: "flex"}}>
                             <InputSelect
                                 name="target"
                                 label="Target"
                                 options={sourceChains}
                                 form={form}
+                                InputSx={{borderBottomRightRadius: 0, borderTopRightRadius: 0}}
+                                sx={{width: "40%"}}
                             />
-                        </Grid>
-                        <Grid item mobile={12} tablet={6}>
                             <InputSelect
                                 name="targetToken"
                                 label="To Token"
                                 options={sourceChains}
                                 disabled={!form.data["target"]}
                                 form={form}
+                                InputSx={{borderBottomLeftRadius: 0, borderTopLeftRadius: 0}}
+                                sx={{width: "60%"}}
                             />
                         </Grid>
                         <Grid item mobile={12} >
@@ -112,7 +116,7 @@ export default function Bridge() {
                         </Grid>
                     </Grid>
 
-                    <Stack spacing={2} p={2} sx={{minWidth: {mobile: "100%", laptop: 320}, alignSelf: "stretch", justifyContent: "flex-end", bgcolor: "secondary.light"}}>
+                    <Stack spacing={2} p={2} sx={{minWidth: {mobile: "100%", laptop: 320}, alignSelf: "stretch", justifyContent: "flex-end", bgcolor: "rgba(0,27,59,0)"}}>
                         <ValueDisplay title="Bridge Fee" value={0.005*form.data["amount"]||0} unit="BTC"/>
                         <ValueDisplay title="Transaction Fee" value={0.01*form.data["amount"]||0} unit="BTC"/>
                         <Divider/>

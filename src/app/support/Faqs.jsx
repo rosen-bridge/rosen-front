@@ -51,7 +51,7 @@ export default function Faqs() {
         <Fragment>
             {faqs.map((cat,j) => (
                 <Fragment key={j}>
-                    <Typography sx={{m:2, mb:1, fontSize: "small", letterSpacing: 2}} color="textSecondary">{cat.title}</Typography>
+                    <Typography sx={{m:2, mt: 3, mb:1, fontSize: "small", letterSpacing: 2}} color="textSecondary">{cat.title}</Typography>
                     <div>
                     {cat.children.map((item,index) => (
                         <Accordion
@@ -59,7 +59,6 @@ export default function Faqs() {
                             expanded={expanded === `${j}-${index}`}
                             onChange={handle_change(`${j}-${index}`)}
                             disableGutters
-                            variant="outlined"
                             sx={{
                                 bgcolor: "background.content",
                                 '&:not(:last-child)': {

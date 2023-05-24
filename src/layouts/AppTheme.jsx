@@ -21,7 +21,7 @@ export default function AppTheme(props) {
                 ...(mode === 'light'
                     ? {
                         primary: {
-                            light: "#b8e0ff",
+                            light: "#f7f7f7",
                             main: "#18507F",
                             dark: "#10416b",
                             contrastText: "#fff",
@@ -33,28 +33,27 @@ export default function AppTheme(props) {
                             contrastText: "#fff",
                         },
                         background: {
-                            default: "#f7f7f7",
+                            default: "#f7f7f7e6",
                             paper: "#fff",
                         }
                     }
                     : {
                         primary: {
-                            light: "#aacbd2",
-                            main: "#278EA5",
-                            dark: "#125f70",
-                            contrastText: "#fff",
+                            light: "#1a2029",
+                            main: "#4a75a5",
+                            dark: "#9cbdd9",
+                            contrastText: "#12212f",
                         },
                         secondary: {
-                            light: "#071527",
-                            main: "#ECB365",
-                            dark: "#ecc48a",
-                            contrastText: "#000",
+                            light: "#12212f",
+                            main: "#4a75a5",
+                            dark: "#9cbdd9",
+                            contrastText: "#12212f",
                         },
                         background: {
-                            default: "#1a2f4b",
-                            paper: "#112641",
+                            default: "#2f3a48",
+                            paper: "#28313F",
                         },
-                        divider: "#1a2f4b",
                     })
             },
             shape: {
@@ -74,7 +73,7 @@ export default function AppTheme(props) {
                 h1: {
                     fontSize: "1.7rem",
                     fontWeight: "bold",
-                    color: mode === "light" ? theme.palette.primary.dark : theme.palette.primary.light
+                    color: theme.palette.primary.dark,
                 },
                 h2: {
                     fontSize: "1.5rem",
@@ -98,10 +97,19 @@ export default function AppTheme(props) {
                     color: theme.palette.text.secondary
                 }
             },
+            shadows: [
+                'rgba(0, 0, 0, 0.1) 0px 4px 6px -1px, rgba(0, 0, 0, 0.06) 0px 2px 4px -1px',
+                'rgba(0, 0, 0, 0.35) 0px 25px 20px -20px, rgba(0, 0, 0, 0.05) 0px 0px 6px -1px',
+            ],
             components: {
-                MuiCard: {
+                MuiPaper: {
                     defaultProps: {
-                        variant: 'outlined'
+                        elevation: mode === "light" ? 1 : 0,
+                    },
+                    styleOverrides: {
+                        root: {
+                            backgroundImage: "none !important",
+                        }
                     }
                 },
                 MuiCardHeader: {
@@ -137,9 +145,6 @@ export default function AppTheme(props) {
                         root: {
                             fontSize: '1rem',
                         },
-                        standardWarning: {
-                            border: `1px solid ${theme.palette.warning.light}`
-                        }
                     }
                 },
                 MuiLoadingButton: {
@@ -149,7 +154,44 @@ export default function AppTheme(props) {
                 },
                 MuiTextField: {
                     defaultProps: {
+                        variant: 'filled',
                         fullWidth: true
+                    }
+                },
+                MuiFilledInput: {
+                    defaultProps: {
+                        disableUnderline: true,
+                    },
+                    styleOverrides: {
+                        root: {
+                            borderRadius: theme.shape.borderRadius,
+                            backgroundColor: theme.palette.background.paper,
+                            "&.Mui-disabled": {
+                                backgroundColor: theme.palette.background.paper,
+                            }
+                        },
+                    },
+                },
+                MuiMenu: {
+                    styleOverrides: {
+                        paper: {
+                            backgroundImage: "none !important",
+                            boxShadow: 'rgba(0, 0, 0, 0.1) 0px 4px 6px -1px, rgba(0, 0, 0, 0.06) 0px 2px 4px -1px',
+                        }
+                    }
+                },
+                MuiMenuItem: {
+                    styleOverrides: {
+                        gutters: {
+                            padding: theme.spacing(1,1.5)
+                        }
+                    }
+                },
+                MuiListItemAvatar: {
+                    styleOverrides: {
+                        root: {
+                            minWidth: 36,
+                        }
                     }
                 },
                 MuiPagination: {
@@ -196,7 +238,7 @@ export default function AppTheme(props) {
                         },
                         head: {
                             padding: theme.spacing(1,2),
-                            backgroundColor: theme.palette.secondary.dark,
+                            backgroundColor: mode === "light" ? theme.palette.secondary.dark : theme.palette.primary.dark,
                             color: theme.palette.secondary.contrastText,
                             fontSize: "0.625rem",
                             lineHeight: "1rem",

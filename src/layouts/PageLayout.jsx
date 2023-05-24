@@ -40,8 +40,8 @@ export default function PageLayout({title, subtitle, ...restProps}) {
         <Root>
             <Header>
                 <Box flexGrow={1}>
-                    <Typography variant="h1">{title}</Typography>
-                    <Typography color="textSecondary">{subtitle}</Typography>
+                    <Typography variant="h1" textAlign="center" sx={{mb: 1}}>{title}</Typography>
+                    <Typography color="textSecondary" textAlign="center">{subtitle}</Typography>
                 </Box>
                 <Toolbar/>
             </Header>

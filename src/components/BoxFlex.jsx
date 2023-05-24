@@ -31,7 +31,7 @@ export default function ({title, sx, ...restProps}) {
                     flexWrap: "wrap",
                     gap: {mobile: 2, tablet: 1},
                     px: 2,
-                    mb: 2,
+                    mb: {mobile: 0, tablet: 2},
                     mt: 1,
                 }} {...restProps}/>
             </Collapse>

@@ -15,7 +15,9 @@ const Root = styled(Box)(({theme}) => ({
         backgroundColor: theme.palette.mode === "light" ? "#eee" : "#0a1729",
     },
     backgroundColor: "#112641",
-    backgroundImage: theme.palette.mode === "light" ? `linear-gradient(180deg, #FC7B41 0%, #E2844A 30%, #52617E 70%, #164B7D 100%)` : "none",
+    backgroundImage: theme.palette.mode === "light" ?
+        `linear-gradient(180deg, #FC7B41 0%, #E2844A 30%, #52617E 70%, #164B7D 100%)` :
+        "radial-gradient(circle at 10% -12.9%, rgb(74, 98, 110) 0.3%, rgb(30, 33, 48) 50.2%)",
     [theme.breakpoints.down("tablet")]: {
         flexDirection: "column",
         backgroundColor: "#0a1729",
@@ -39,7 +41,7 @@ const Appbar = styled(Box)(({theme}) => ({
     "& .toolbar": {
         marginLeft: "auto",
         "& .MuiIconButton-root": {
-            color: theme.palette.primary.contrastText
+            color: theme.palette.common.white
         }
     },
     [theme.breakpoints.down("tablet")]: {

@@ -25,6 +25,7 @@ export default function ({form}) {
                     clearable
                     form={form}
                     size="small"
+                    variant="standard"
                     sx={{flexGrow: 1, width: {mobile: "100%", tablet: 200}}}
                 />
                 {!isMobile && <FormLabel>Token</FormLabel>}
@@ -37,6 +38,7 @@ export default function ({form}) {
                     clearable
                     form={form}
                     size="small"
+                    variant="standard"
                     sx={{flexGrow: 1, width: {mobile: "100%", tablet: 200}}}
                 />
                 <FormControlLabel
