@@ -9,10 +9,12 @@ const settings = { method: "Get" };
 const networks = ["ergo", "cardano"];
 
 for(const network of networks) {
-  fetch(`https://api.github.com/repos/${githubRepo}/releases?per_page=1`, settings)
+  fetch(`https://api.github.com/repos/${githubRepo}/releases?per_page=100`, settings)
     .then((res) => res.json())
     .then((json) => {
-        const releaseTag = json[0].tag_name;
+        const date = Math.max(...json.map(item => (new Date(item.published_at)).getTime()))
+        const release = json.filter(item => new Date(item.published_at) >= date)
+        const releaseTag = release[0].tag_name;
         const url = `https://github.com/${githubRepo}/releases/download/${releaseTag}/contracts-${network}-${networkType}-${releaseTag}.json`;
         fetch(url, settings)
             .then((res) => res.json())
